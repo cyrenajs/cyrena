@@ -1,6 +1,6 @@
 {
   "name": "powercycle",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Powerful Cycle JS extension for static VDOM composition and even more seamless React interoperability",
   "main": "src/react/component.js",
   "scripts": {
@@ -26,8 +26,9 @@
   },
   "homepage": "https://github.com/sarimarton/powercycle#readme",
   "dependencies": {
-    "lodash": "^4.17.11",
-    "@cycle/isolate": "^5.0.0"
+    "@cycle/isolate": "^5.0.0",
+    "@cycle/state": "^1.2.0",
+    "lodash": "^4.17.11"
   },
   "peerDependencies": {
     "@cycle/react": "^2.0.0",

@@ -1,8 +1,15 @@
 import xs from 'xstream'
 import { h } from '@cycle/react'
-import { makePragma, component as powerCycleComponent} from '../component.js'
 import { createElement, Fragment, useState, useEffect } from 'react'
 import cloneDeepWith from 'lodash/cloneDeepWith'
+
+import { makeCollection } from '@cycle/state'
+
+import {
+  makePragma,
+  component as powerCycleComponent
+} from '../component.js'
+
 
 export const pragma = makePragma(h)
 
@@ -68,14 +75,32 @@ export function useCycleState (sources) {
   ]
 }
 
-// This is just a dummy component to serve as a lens boundary for
-// a sub-vdom. Use lens prop on it, just as on any other cycle component
+// This is just a dummy component to serve as a lens or collection boundary for
+// a sub-vdom.
 export function Scope (sources) {
   return component(
     createElement(Fragment, null, sources.props.children),
     null,
     sources
   )
+}
+
+export function Collection (sources) {
+  const List = makeCollection({
+    item: Scope,
+    itemKey: (childState, index) => String(index), // or, e.g., childState.key
+    itemScope: key => key, // use `key` string as the isolation scope
+    collectSinks: instances => {
+      return {
+        react: instances
+          .pickCombine('react')
+          .map(itemVNodes => createElement(Fragment, null, itemVNodes)),
+        state: instances.pickMerge('state')
+      }
+    }
+  })
+
+  return List(sources)
 }
 
 // Wrapper for any cycle component for the convenience of shorthand
