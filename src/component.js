@@ -9,6 +9,7 @@ import omit from 'lodash/omit'
 import set from 'lodash/set'
 import defaultTo from 'lodash/defaultTo'
 import isObject from 'lodash/isObject'
+import isPlainObject from 'lodash/isPlainObject'
 
 import isolate from '@cycle/isolate'
 
@@ -33,6 +34,15 @@ const isComponentNode = node =>
 const isElement = val =>
   val && val[VDOM_ELEMENT_FLAG]
 
+const isMostProbablyStream = val =>
+  Boolean(
+    val &&
+    typeof val === 'object' &&
+    !val[VDOM_ELEMENT_FLAG] &&
+    !isPlainObject(val) &&
+    !Array.isArray(val)
+  )
+
 const traverse = (action, obj, path = [], acc = []) => {
   let [_acc, stop] = action(acc, obj, path)
 
@@ -46,7 +56,7 @@ const traverse = (action, obj, path = [], acc = []) => {
 }
 
 const makeTraverseAction = config => (acc, val, path) => {
-  const isStream = config.isStreamFn(val)
+  const isStream = isMostProbablyStream(val)
   const isCmp = isComponentNode(val)
 
   // Add key props to prevent React warnings
@@ -89,7 +99,7 @@ const makeTraverseAction = config => (acc, val, path) => {
 export function component (vdom, config) {
   const cloneDeep = obj => cloneDeepWith(
     obj,
-    value => config.isStreamFn(value) ? value : undefined
+    value => isMostProbablyStream(value) ? value : undefined
   )
 
   // This one-time clone is needed to be able to

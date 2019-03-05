@@ -1,4 +1,4 @@
-import xs, { Stream } from 'xstream'
+import xs from 'xstream'
 import { h } from '@cycle/react'
 import { makePragma, component as powerCycleComponent} from '../component.js'
 import { createElement, Fragment, useState, useEffect } from 'react'
@@ -9,8 +9,7 @@ export const pragma = makePragma(h)
 const CONFIG = {
   vdomProp: 'react',
   combineFn: streams => xs.combine(...streams),
-  mergeFn: streams => xs.merge(...streams),
-  isStreamFn: val => val instanceof Stream
+  mergeFn: streams => xs.merge(...streams)
 }
 
 const isReactComponent = val =>
