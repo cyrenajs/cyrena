@@ -27,7 +27,7 @@
   "homepage": "https://github.com/sarimarton/powercycle#readme",
   "dependencies": {
     "lodash": "^4.17.11",
-    "@cycle/isolate": "^5.0.0",
+    "@cycle/isolate": "^5.0.0"
   },
   "peerDependencies": {
     "@cycle/react": "^2.0.0",
