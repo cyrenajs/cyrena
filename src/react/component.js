@@ -10,7 +10,6 @@ import {
   component as powerCycleComponent
 } from '../component.js'
 
-
 export const pragma = makePragma(h)
 
 const CONFIG = {
@@ -75,8 +74,8 @@ export function useCycleState (sources) {
   ]
 }
 
-// This is just a dummy component to serve as a lens or collection boundary for
-// a sub-vdom.
+// This is just a dummy component to serve as a lens or collection item
+// container a sub-vdom.
 export function Scope (sources) {
   return component(
     createElement(Fragment, null, sources.props.children),
@@ -88,19 +87,29 @@ export function Scope (sources) {
 export function Collection (sources) {
   const List = makeCollection({
     item: Scope,
-    itemKey: (childState, index) => String(index), // or, e.g., childState.key
-    itemScope: key => key, // use `key` string as the isolation scope
-    collectSinks: instances => {
-      return {
+    itemKey: (childState, index) => String(index),
+    itemScope: key => key,
+    collectSinks: instances =>
+      ({
         react: instances
           .pickCombine('react')
-          .map(itemVNodes => createElement(Fragment, null, itemVNodes)),
+          .map(itemVdoms => createElement(Fragment, null, itemVdoms)),
         state: instances.pickMerge('state')
-      }
-    }
+      })
   })
 
-  return List(sources)
+  const indexKey = sources.props.indexKey
+
+  const addIndexLens = {
+    get: state => state.map((record, idx) => ({ ...record, [indexKey]: idx })),
+    set: (state, childState) => childState.map(omit(indexKey))
+  };
+
+  const listCmp = indexKey
+    ? isolate(List, { state: addIndexLens })
+    : List
+
+  return listCmp(sources)
 }
 
 // Wrapper for any cycle component for the convenience of shorthand
