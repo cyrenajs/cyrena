@@ -69,6 +69,17 @@ const traverse = (action, obj, path = [], acc = []) => {
   return _acc
 }
 
+// Power-ups the sources object for shorthands like:
+// sources.react.select(input).events('change') -> sources[input].change
+const makePowerSources = sources =>
+  new Proxy(sources, {
+    get: (target, prop) => typeof prop === 'symbol'
+      ? new Proxy(target.react.select(prop), {
+          get: (target, prop) => target.events(prop)
+        })
+      : Reflect.get(target, prop)
+  })
+
 // Allow shortcut return value, like: return <div>...</div>
 // or with sinks: return [<div>...</div>, { state: ... }]
 // In the shortcut form, there's no need to pass the sources object, as it's
@@ -79,7 +90,7 @@ const traverse = (action, obj, path = [], acc = []) => {
 // component() call at the top of the hierarchy, which can be achieved with
 // the withPower() utility as well
 const resolveShorthandOutput = (config, cmp) => sources => {
-  const output = castArray(cmp(sources))
+  const output = castArray(cmp(makePowerSources(sources)))
 
   return isElement(output[0])
     // it's a shorthand return value
@@ -125,10 +136,13 @@ const makeTraverseAction = config => (acc, val, path) => {
     const cmp = (isCmp || isInlineCmp) &&
       (lens ? isolate(regularCmp, lens) : regularCmp)
 
+    const sources =
+      isCmp && { ...config.sources, ...pick(val, ['key', 'props']) } ||
+      isInlineCmp && config.sources
+
     // We put it in an array to handle different output styles below
     const sinks =
-      isCmp && cmp({ ...config.sources, ...pick(val, ['key', 'props']) }) ||
-      isInlineCmp && cmp(config.sources)
+      (isCmp || isInlineCmp) && cmp(sources)
 
     acc.push({ val, path, isCmp: isCmp || isInlineCmp, sinks })
   }
