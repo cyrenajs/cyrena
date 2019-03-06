@@ -3,6 +3,10 @@ import { h } from '@cycle/react'
 import { createElement, Fragment, useState, useEffect } from 'react'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 
+import omit from 'lodash/fp/omit'
+import _get from 'lodash/get'
+
+import isolate from '@cycle/isolate'
 import { makeCollection } from '@cycle/state'
 
 import {
@@ -111,6 +115,18 @@ export function Collection (sources) {
 
   return listCmp(sources)
 }
+
+// Helper function to easily access state parts in the vdom.
+// If src is provided, it'll use that as the sources object and return
+// with a stream. If it's omitted, it will instead create an inline
+// component
+export const map = (fn, src) =>
+  src
+    ? src.state.stream.map(fn)
+    : src => createElement(Fragment, null, src.state.stream.map(fn))
+
+export const get = (key, src) =>
+  map(state => _get(state, key, state), src)
 
 // Wrapper for any cycle component for the convenience of shorthand
 // return values. An initial component() call remembers the sources object,
