@@ -79,7 +79,7 @@ export function useCycleState (sources) {
 }
 
 // This is just a dummy component to serve as a lens or collection item
-// container a sub-vdom.
+// container for a sub-vdom.
 export function Scope (sources) {
   return component(
     createElement(Fragment, null, sources.props.children),
@@ -97,7 +97,11 @@ export function Collection (sources) {
       ({
         react: instances
           .pickCombine('react')
-          .map(itemVdoms => createElement(Fragment, null, itemVdoms)),
+          .map(itemVdoms => createElement(
+            Fragment,
+            null,
+            itemVdoms.map((vdom, idx) => ({ ...vdom, key: idx }))
+          )),
         state: instances.pickMerge('state')
       })
   })
