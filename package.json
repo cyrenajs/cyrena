@@ -1,6 +1,6 @@
 {
   "name": "powercycle",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Powerful Cycle JS extension for static VDOM composition and even more seamless React interoperability",
   "main": "src/react/component.js",
   "scripts": {

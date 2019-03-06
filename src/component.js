@@ -138,15 +138,20 @@ const makeTraverseAction = config => (acc, val, path) => {
   return [acc, isStream || isCmp || isInlineCmp]
 }
 
+const cloneDeepVdom = obj => cloneDeepWith(obj, value => {
+  if (
+    isMostProbablyStream(value) ||
+    value && value.$$typeof === Symbol.for('react.forward_ref')
+  ) {
+    return value
+  }
+})
+
 export function component (vdom, config) {
-  const cloneDeep = obj => cloneDeepWith(
-    obj,
-    value => isMostProbablyStream(value) ? value : undefined
-  )
 
   // This one-time clone is needed to be able to
   // amend the read-only react vdom with auto generated keys
-  const root = [cloneDeep(vdom)]
+  const root = [cloneDeepVdom(vdom)]
 
   const streamInfoRecords = traverse(makeTraverseAction(config), root)
 
@@ -162,7 +167,7 @@ export function component (vdom, config) {
   const vdom$ = config.combineFn(signalStreams)
     .map(signalValues => {
       // It's needed to make react detect changes
-      const _root = cloneDeep(root)
+      const _root = cloneDeepVdom(root)
 
       zip(signalValues, streamInfoRecords).forEach(([val, info]) => {
         set(
