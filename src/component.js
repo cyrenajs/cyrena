@@ -6,6 +6,7 @@ import mergeWith from 'lodash/mergeWith'
 import compact from 'lodash/compact'
 import pick from 'lodash/pick'
 import omit from 'lodash/omit'
+import get from 'lodash/get'
 import set from 'lodash/set'
 import defaultTo from 'lodash/defaultTo'
 import isObject from 'lodash/isObject'
@@ -91,6 +92,19 @@ const resolveShorthandOutput = (config, cmp) => sources => {
     : output[0]
 }
 
+// Support dot-separated deep lenses - not sure how much of a real world usecase
+// We choose a careful strategy here, ie. if there's no dot, we stay with the
+// string version
+const getLens = path => path && (
+  path.split('.').length < 2 ? path : {
+    state: {
+      get: state => get(state, path),
+      set: (state, childState) => set(state, path, childState)
+    },
+    '*': path
+  }
+)
+
 const makeTraverseAction = config => (acc, val, path) => {
   const isStream = isMostProbablyStream(val)
   const isCmp = isComponentNode(val)
@@ -102,7 +116,8 @@ const makeTraverseAction = config => (acc, val, path) => {
   }
 
   if (isStream || isCmp || isInlineCmp) {
-    const lens = isCmp && val.props.lens
+    const lens = isCmp && getLens(val.props.lens)
+
     const regularCmp =
       isCmp && resolveShorthandOutput(config, val.type) ||
       isInlineCmp && resolveShorthandOutput(config, val)
@@ -163,8 +178,8 @@ export function component (vdom, config) {
   // Gather all event sinks (all but vdom) and merge them together by type
   const eventSinks =
     [streamInfoRecords]
-      .map(xs => xs.filter(info => info.isCmp))
-      .map(xs => xs.map(info => info.sinks))
+      .map(xs => xs.filter(rec => rec.isCmp))
+      .map(xs => xs.map(rec => rec.sinks))
       .map(xs => [config.eventSinks || {}, ...xs])
       .map(xs => xs.reduce(
         (acc, next) => mergeWith(
