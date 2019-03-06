@@ -49,6 +49,13 @@ const isMostProbablyStream = val =>
     !Array.isArray(val)
   )
 
+const isInlineComponent = (val, path) =>
+  typeof val === 'function' &&
+  // Check if value is a child node in the vdom - the exact regexp might
+  // be react specific, but, anyway...
+  // The zero at the beginning is the array wrapper in component ()
+  /^0(\.props\.children(?:\.\d+)?)+$/.test(path.join('.'))
+
 const traverse = (action, obj, path = [], acc = []) => {
   let [_acc, stop] = action(acc, obj, path)
 
@@ -87,26 +94,33 @@ const resolveShorthandOutput = (config, cmp) => sources => {
 const makeTraverseAction = config => (acc, val, path) => {
   const isStream = isMostProbablyStream(val)
   const isCmp = isComponentNode(val)
+  const isInlineCmp = isInlineComponent(val, path)
 
   // Add key props to prevent React warnings
   if (isElement(val)) {
     val.key = defaultTo(val.key, path[path.length - 1])
   }
 
-  if (isStream || isCmp) {
+  if (isStream || isCmp || isInlineCmp) {
     const lens = isCmp && val.props.lens
-    const regularCmp = isCmp && resolveShorthandOutput(config, val.type)
-    const cmp = isCmp &&
+    const regularCmp =
+      isCmp && resolveShorthandOutput(config, val.type) ||
+      isInlineCmp && resolveShorthandOutput(config, val)
+
+    const cmp = (isCmp || isInlineCmp) &&
       (lens ? isolate(regularCmp, lens) : regularCmp)
 
     // We put it in an array to handle different output styles below
-    const sinks = isCmp &&
-      cmp({ ...config.sources, ...pick(val, ['key', 'props']) })
+    const sinks =
+      isCmp && cmp({ ...config.sources, ...pick(val, ['key', 'props']) }) ||
+      isInlineCmp && cmp(config.sources)
 
-    acc.push({ val, path, isCmp, ...isCmp && { sinks } })
+    acc.push({ val, path, isCmp: isCmp || isInlineCmp, sinks })
   }
 
-  return [acc, isStream || isCmp]
+  // Return with the accumulator object, and a second boolean value which
+  // tells if the traversal should stop at this branch
+  return [acc, isStream || isCmp || isInlineCmp]
 }
 
 export function component (vdom, config) {
