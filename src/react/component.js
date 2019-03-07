@@ -99,7 +99,7 @@ export function Collection (sources) {
           .map(itemVdoms => createElement(
             Fragment,
             null,
-            itemVdoms.map((vdom, idx) => ({ ...vdom, key: idx }))
+            itemVdoms.map((vdom, idx) => ({ ...vdom, key: 'collection-' + idx }))
           )),
         state: instances.pickMerge('state')
       })
