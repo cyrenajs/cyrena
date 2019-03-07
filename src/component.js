@@ -24,7 +24,10 @@ export const makePragma = pragma => (node, attr, ...children) =>
       // Enforce key presence to suppress warnings coming from react pragma.
       // Not sure if it's a good idea, since in ReactDomains, the warning is
       // obviously legit...
-      children.map((c, key) => isObject(c) ? Object.assign(c, { key }) : c)
+      children.map((el, key) => isObject(el)
+        ? Object.assign(el, { key: defaultTo(el.key, String(key)) })
+        : el
+      )
     ),
     [VDOM_ELEMENT_FLAG]: true
   })
@@ -187,7 +190,7 @@ export function component (vdom, config) {
         set(
           _root,
           info.path,
-          info.isCmp ? { ...val, key: defaultTo(info.val.key, val.key) } : val
+          info.isCmp ? { ...val, key: info.val.key } : val
         )
       })
 
