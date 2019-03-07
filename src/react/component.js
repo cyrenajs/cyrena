@@ -2,6 +2,7 @@ import xs from 'xstream'
 import { h } from '@cycle/react'
 import { createElement, Fragment, useState, useEffect } from 'react'
 import cloneDeepWith from 'lodash/cloneDeepWith'
+import clone from 'lodash/clone'
 
 import omit from 'lodash/fp/omit'
 import _get from 'lodash/get'
@@ -11,6 +12,7 @@ import { makeCollection } from '@cycle/state'
 
 import {
   makePragma,
+  makePowerSources,
   component as powerCycleComponent
 } from '../component.js'
 
@@ -32,23 +34,20 @@ const isReactComponent = val =>
 //   (they're all react components, we're not invoking them), and amends the
 //   components' props objects with the necessary cycle information, later
 //   used in the hooks
-export function ReactRealm (sources) {
+export function ReactRealm (_sources) {
   const reducer$ = xs.create({
     start: function () {},
     stop: function () {}
   })
 
   const subVdomWithAmendedProps = cloneDeepWith(
-    sources.props.children,
-    val => isReactComponent(val)
-      ? {
-        ...val,
-        props: {
-          ...val.props,
-          sources: { ...sources, reducer$ }
-        }
+    _sources.props.children,
+    function (val) {
+      if (isReactComponent(val)) {
+        const sources = Object.assign(clone(_sources), { reducer$ })
+        return { ...val, props: { ...val.props, sources }}
       }
-      : undefined
+    }
   )
 
   return {

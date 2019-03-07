@@ -71,7 +71,7 @@ const traverse = (action, obj, path = [], acc = []) => {
 
 // Power-ups the sources object for shorthands like:
 // sources.react.select(input).events('change') -> sources[input].change
-const makePowerSources = sources =>
+export const makePowerSources = sources =>
   new Proxy(sources, {
     get: (target, prop) => typeof prop === 'symbol'
       ? new Proxy(target.react.select(prop), {
