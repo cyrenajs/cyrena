@@ -9,13 +9,13 @@ import _get from 'lodash/get'
 import castArray from 'lodash/castArray'
 import uniqueId from 'lodash/uniqueId'
 
-import isolate from '@cycle/isolate'
+import cycleIsolate from '@cycle/isolate'
 import { makeCollection } from '@cycle/state'
 
 import {
   makePragma,
   makePowerSources,
-  component as powerCycleComponent
+  powerCycleComponent
 } from '../component.js'
 
 export const pragma = makePragma(h)
@@ -89,6 +89,22 @@ export function Scope (sources) {
   )
 }
 
+export function isolate(Cmp, lens) {
+  return function (sources) {
+    return component(
+      pragma(
+        Fragment,
+        null,
+        pragma(cycleIsolate(Cmp, lens), null, sources.props.children)
+      ),
+      null,
+      sources
+    )
+  }
+}
+
+const COLLECTION_ITEM_ID = Symbol('powercycle.collection-item-id')
+
 export function CollectionItem (sources) {
   return component(
     pragma(
@@ -100,8 +116,6 @@ export function CollectionItem (sources) {
     sources
   )
 }
-
-const COLLECTION_ITEM_ID = Symbol('powercycle.collection-item-id')
 
 export function Collection (sources) {
   const itemsMap = new WeakMap()

@@ -15,8 +15,9 @@ import escapeRegExp from 'lodash/escapeRegExp'
 import dropRight from 'lodash/dropRight'
 import last from 'lodash/last'
 import uniqueId from 'lodash/uniqueId'
+import clone from 'lodash/clone'
 
-import isolate from '@cycle/isolate'
+import { isolate } from './react/component'
 
 const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
 const VDOM_ELEMENT_KEY_PROP = Symbol('powercycle.key')
@@ -46,10 +47,6 @@ export const makePragma = pragma => (node, attr, ...children) => {
           el[VDOM_INLINE_CMP] = true
         }
         return el
-        // Seems like we don't need it, clean it up if stable
-        // return isObject(el)
-        //   ? Object.assign(el, { key: defaultTo(key, 'power-pragma-autokey-' + uniqueId()) })
-        //   : el
       })
     ),
     [VDOM_ELEMENT_FLAG]: true,
@@ -85,14 +82,16 @@ const isInlineComponent = (val, path) =>
 
 // Power-ups the sources object for shorthands like:
 // sources.react.select(input).events('change') -> sources[input].change
-export const makePowerSources = sources =>
-  new Proxy(sources, {
+export const powerUpSources = sources =>
+  new Proxy({ ...sources }, {
     get: (target, prop) => typeof prop === 'symbol'
       ? new Proxy(target.react.select(prop), {
           get: (target, prop) => target.events(prop)
         })
       : Reflect.get(target, prop)
   })
+
+const depowerSources = clone
 
 // Allow shortcut return value, like: return <div>...</div>
 // or with sinks: return [<div>...</div>, { state: ... }]
@@ -104,11 +103,11 @@ export const makePowerSources = sources =>
 // component() call at the top of the hierarchy, which can be achieved with
 // the withPower() utility as well
 const resolveShorthandOutput = (config, cmp) => sources => {
-  const output = castArray(cmp(makePowerSources(sources)))
+  const output = castArray(cmp(powerUpSources(sources)))
 
   return isElement(output[0])
     // it's a shorthand return value
-    ? component(output[0], {
+    ? powerCycleComponent(output[0], {
       ...config,
       eventSinks: output[1],
       sources: output[2] || sources
@@ -149,7 +148,6 @@ const makeTraverseAction = config => (acc, val, path) => {
 
   // Add key props to prevent React warnings
   if (isElement(val)) {
-    // debugger
     val.key = defaultTo(val.key, 'powercycle-traverse-autokey-' + uniqueId())
   }
 
@@ -195,13 +193,15 @@ const cloneDeepVdom = obj => cloneDeepWith(obj, value => {
   }
 })
 
-export function component (vdom, config) {
+export function powerCycleComponent (vdom, config) {
 
   // This one-time clone is needed to be able to
   // amend the read-only react vdom with auto generated keys
   const root = [cloneDeepVdom(vdom)]
 
-  const streamInfoRecords = traverse(makeTraverseAction(config), root)
+  const streamInfoRecords = traverse(makeTraverseAction(
+    { ...config, sources: depowerSources(config.sources) }
+  ), root)
 
   // Get the signal streams (the ones which need to be combined)
   const signalStreams = streamInfoRecords.map(node =>
