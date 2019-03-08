@@ -11,26 +11,53 @@ import set from 'lodash/set'
 import defaultTo from 'lodash/defaultTo'
 import isObject from 'lodash/isObject'
 import isPlainObject from 'lodash/isPlainObject'
+import escapeRegExp from 'lodash/escapeRegExp'
+import dropRight from 'lodash/dropRight'
+import last from 'lodash/last'
+import uniqueId from 'lodash/uniqueId'
 
 import isolate from '@cycle/isolate'
 
 const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
+const VDOM_ELEMENT_KEY_PROP = Symbol('powercycle.key')
+const VDOM_INLINE_CMP = Symbol('powercycle.inline-cmp')
 
-export const makePragma = pragma => (node, attr, ...children) =>
-  ({
+export const makePragma = pragma => (node, attr, ...children) => {
+  const key = attr && attr.key
+
+  // React pragma convert key attribs to string so it's just better to
+  // set it undefined to avoid having an [object Object] key
+  if (attr && typeof attr.key !== 'string') {
+    attr.key = undefined
+  }
+
+  const ret = ({
     ...pragma(
       node,
-      { ...attr },
+      {
+        ...attr,
+        key: defaultTo(key, 'power-pragma-autokey-' + uniqueId())
+      },
       // Enforce key presence to suppress warnings coming from react pragma.
       // Not sure if it's a good idea, since in ReactDomains, the warning is
       // obviously legit...
-      children.map((el, key) => isObject(el)
-        ? Object.assign(el, { key: defaultTo(el.key, String(key)) })
-        : el
-      )
+      children.flat().map((el, idx) => {
+        if (typeof el === 'function') {
+          el[VDOM_INLINE_CMP] = true
+        }
+        return el
+        // Seems like we don't need it, clean it up if stable
+        // return isObject(el)
+        //   ? Object.assign(el, { key: defaultTo(key, 'power-pragma-autokey-' + uniqueId()) })
+        //   : el
+      })
     ),
-    [VDOM_ELEMENT_FLAG]: true
+    [VDOM_ELEMENT_FLAG]: true,
+    [VDOM_ELEMENT_KEY_PROP]: key
   })
+
+  return ret
+}
 
 const isComponentNode = node =>
   node && typeof node.type === 'function'
@@ -54,23 +81,7 @@ const isMostProbablyStream = val =>
   )
 
 const isInlineComponent = (val, path) =>
-  typeof val === 'function' &&
-  // Check if value is a child node in the vdom - the exact regexp might
-  // be react specific, but, anyway...
-  // The zero at the beginning is the array wrapper in component ()
-  /^0(\.props\.children(?:\.\d+)?)+$/.test(path.join('.'))
-
-const traverse = (action, obj, path = [], acc = []) => {
-  let [_acc, stop] = action(acc, obj, path)
-
-  if (!stop && typeof obj === 'object') {
-    for (let k in obj) {
-      _acc = traverse(action, obj[k], [...path, k], _acc)
-    }
-  }
-
-  return _acc
-}
+  val && val[VDOM_INLINE_CMP]
 
 // Power-ups the sources object for shorthands like:
 // sources.react.select(input).events('change') -> sources[input].change
@@ -119,6 +130,18 @@ const getLens = path => path && (
   }
 )
 
+const traverse = (action, obj, path = [], acc = []) => {
+  let [_acc, stop] = action(acc, obj, path)
+
+  if (!stop && obj && typeof obj === 'object') {
+    for (let k of [...Object.keys(obj), ...Object.getOwnPropertySymbols(obj)]) {
+      _acc = traverse(action, obj[k], [...path, k], _acc)
+    }
+  }
+
+  return _acc
+}
+
 const makeTraverseAction = config => (acc, val, path) => {
   const isStream = isMostProbablyStream(val)
   const isCmp = isComponentNode(val)
@@ -126,7 +149,8 @@ const makeTraverseAction = config => (acc, val, path) => {
 
   // Add key props to prevent React warnings
   if (isElement(val)) {
-    val.key = defaultTo(val.key, path[path.length - 1])
+    // debugger
+    val.key = defaultTo(val.key, 'powercycle-traverse-autokey-' + uniqueId())
   }
 
   if (isStream || isCmp || isInlineCmp) {
@@ -139,15 +163,22 @@ const makeTraverseAction = config => (acc, val, path) => {
     const cmp = (isCmp || isInlineCmp) &&
       (lens ? isolate(regularCmp, lens) : regularCmp)
 
-    const sources =
-      isCmp && { ...config.sources, ...pick(val, ['key', 'props']) } ||
-      isInlineCmp && config.sources
+    // We pass key and props in the sources object
+    const sources = (isCmp || isInlineCmp) && {
+      ...config.sources,
+      props: val.props,
+      key: val[VDOM_ELEMENT_KEY_PROP]
+    }
 
     // We put it in an array to handle different output styles below
     const sinks =
       (isCmp || isInlineCmp) && cmp(sources)
 
-    acc.push({ val, path, isCmp: isCmp || isInlineCmp, sinks })
+    const _path = last(path) === VDOM_ELEMENT_KEY_PROP
+      ? [...dropRight(path), 'key']
+      : path
+
+    acc.push({ val, path: _path, isCmp: isCmp || isInlineCmp, sinks })
   }
 
   // Return with the accumulator object, and a second boolean value which
@@ -187,11 +218,7 @@ export function component (vdom, config) {
       const _root = cloneDeepVdom(root)
 
       zip(signalValues, streamInfoRecords).forEach(([val, info]) => {
-        set(
-          _root,
-          info.path,
-          info.isCmp ? { ...val, key: info.val.key } : val
-        )
+        set(_root, info.path, val)
       })
 
       return _root[0]

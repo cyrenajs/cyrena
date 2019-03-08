@@ -1,11 +1,13 @@
 import xs from 'xstream'
 import { h } from '@cycle/react'
-import { createElement, Fragment, useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import clone from 'lodash/clone'
 
 import omit from 'lodash/fp/omit'
 import _get from 'lodash/get'
+import castArray from 'lodash/castArray'
+import uniqueId from 'lodash/uniqueId'
 
 import isolate from '@cycle/isolate'
 import { makeCollection } from '@cycle/state'
@@ -52,7 +54,7 @@ export function ReactRealm (_sources) {
 
   return {
     react: xs.of(
-      createElement(Fragment, null, subVdomWithAmendedProps)
+      pragma(Fragment, null, ...castArray(subVdomWithAmendedProps))
     ),
     state: reducer$
   }
@@ -81,42 +83,75 @@ export function useCycleState (sources) {
 // container for a sub-vdom.
 export function Scope (sources) {
   return component(
-    createElement(Fragment, null, sources.props.children),
+    pragma(Fragment, null, ...castArray(sources.props.children)),
     null,
     sources
   )
 }
 
+export function CollectionItem (sources) {
+  return component(
+    pragma(
+      Fragment,
+      { key: get(COLLECTION_ITEM_ID, sources) },
+      sources.props.children
+    ),
+    null,
+    sources
+  )
+}
+
+const COLLECTION_ITEM_ID = Symbol('powercycle.collection-item-id')
+
 export function Collection (sources) {
+  const itemsMap = new WeakMap()
+
+  const uniqeId = (function* () {
+    let id = 1
+    while (1) yield id++
+  })()
+
   const List = makeCollection({
-    item: Scope,
-    itemKey: (childState, index) => String(index),
-    itemScope: key => key,
-    collectSinks: instances =>
-      ({
+    item: CollectionItem,
+    collectSinks: instances => {
+      return ({
         react: instances
           .pickCombine('react')
-          .map(itemVdoms => createElement(
+          .map(itemVdoms => pragma(
             Fragment,
             null,
-            itemVdoms.map((vdom, idx) => ({ ...vdom, key: 'collection-' + idx }))
-          )),
+            itemVdoms)
+          ),
         state: instances.pickMerge('state')
       })
+    }
   })
 
-  const indexKey = sources.props.indexKey
+  const indexKey = sources.props.indexKey || 'index'
 
   const addIndexLens = {
-    get: state => state.map((record, idx) => ({ ...record, [indexKey]: idx })),
-    set: (state, childState) => childState.map(omit(indexKey))
+    get: state => state.map((record, idx) => {
+      record[indexKey] = idx
+      if (!itemsMap.has(record)) {
+        itemsMap.set(record, uniqeId.next().value)
+      }
+      record[COLLECTION_ITEM_ID] = itemsMap.get(record)
+
+      return record
+    }),
+    set: (state, childState) => childState.map(state => {
+      delete state[indexKey]
+      return state
+    })
   };
 
-  const listCmp = indexKey
-    ? isolate(List, { state: addIndexLens })
-    : List
+  const listCmp = isolate(List, { state: addIndexLens })
 
-  return listCmp(sources)
+  // Wrap it in a fragment to prevent
+  // 'missing unique key warning from react in case of having adjacent elements
+  // to the Collection. makeCollection generates a Context.Provider element,
+  // which can't have key
+  return pragma(Fragment, null, pragma(listCmp, null, sources.props.children))
 }
 
 // Helper function to easily access state parts in the vdom.
@@ -126,7 +161,7 @@ export function Collection (sources) {
 export const map = (fn, src) =>
   src
     ? src.state.stream.map(fn)
-    : src => createElement(Fragment, null, src.state.stream.map(fn))
+    : src => pragma(Fragment, null, src.state.stream.map(fn))
 
 export const get = (key, src) =>
   map(state => _get(state, key, state), src)
@@ -136,7 +171,7 @@ export const get = (key, src) =>
 // and passes it through every invocation through the component() call tree.
 export function withPower (Cmp) {
   return function (sources) {
-    return component(createElement(Cmp), null, sources)
+    return component(pragma(Cmp), null, sources)
   }
 }
 
