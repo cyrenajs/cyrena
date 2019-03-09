@@ -97,7 +97,7 @@ export function isolate(Cmp, lens) {
       pragma(
         Fragment,
         null,
-        pragma(cycleIsolate(Cmp, lens), null, sources.props.children)
+        pragma(cycleIsolate(Cmp, lens), null, ...castArray(sources.props.children))
       ),
       null,
       sources
@@ -134,8 +134,8 @@ export function Collection (sources) {
           .map(itemVdoms => pragma(
             Fragment,
             { key: innerFragmentKey },
-            itemVdoms)
-          ),
+            itemVdoms
+          )),
         state: instances.pickMerge('state')
       })
     }
@@ -177,8 +177,8 @@ export const get = (key, src) =>
   map(state => _get(state, key, state), src)
 
 // Wrapper for any cycle component for the convenience of shorthand
-// return values. An initial component() call remembers the sources object,
-// and passes it through every invocation through the component() call tree.
+// return values. An initial component() call makes the component 'controlled',
+// so the sources object is passed to every component child in the tree.
 export function withPower (Cmp) {
   return function (sources) {
     return component(pragma(Cmp), null, sources)

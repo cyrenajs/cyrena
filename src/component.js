@@ -38,11 +38,12 @@ export function makePragma (originalPragma, Fragment) {
         {
           ...attr,
           // Enforce key presence to suppress warnings coming from react pragma.
-          // Not sure if it's a good idea, since in ReactDomains, the warning is
-          // obviously legit...
+          // Not sure if it's a good idea, but for now it just frees us from
+          // those annoying warnings... Collection is handling its item keys
+          // on its own.
           key: defaultTo(key, 'power-pragma-autokey-' + uniqueId())
         },
-        children.flat().map((el, idx) => {
+        children.map((el, idx) => {
           if (typeof el === 'function') {
             el[VDOM_INLINE_CMP] = true
           }
