@@ -176,6 +176,9 @@ export const map = (fn, src) =>
 export const get = (key, src) =>
   map(state => _get(state, key, state), src)
 
+export const $ = name =>
+  Symbol.for(name)
+
 // Wrapper for any cycle component for the convenience of shorthand
 // return values. An initial component() call makes the component 'controlled',
 // so the sources object is passed to every component child in the tree.
