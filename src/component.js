@@ -201,9 +201,10 @@ export function powerCycleComponent (vdom, config) {
   // amend the read-only react vdom with auto generated keys
   const root = [cloneDeepVdom(vdom)]
 
-  const streamInfoRecords = traverse(makeTraverseAction(
-    { ...config, sources: depowerSources(config.sources) }
-  ), root)
+  const streamInfoRecords = traverse(
+    makeTraverseAction({ ...config, sources: depowerSources(config.sources) }),
+    root
+  )
 
   // Get the signal streams (the ones which need to be combined)
   const signalStreams = streamInfoRecords.map(node =>

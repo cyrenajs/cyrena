@@ -105,37 +105,35 @@ export function isolate(Cmp, lens) {
   }
 }
 
-const COLLECTION_ITEM_ID = Symbol('powercycle.collection-item-id')
+export const COLLECTION_DELETE =
+  prevState => undefined
 
-export function CollectionItem (sources) {
-  return component(
+export const CollectionItem = idKey => sources =>
+  component(
     pragma(
       Fragment,
-      { key: get(COLLECTION_ITEM_ID, sources) },
+      { key: get(idKey, sources) },
       sources.props.children
     ),
     null,
     sources
   )
-}
 
 export function Collection (sources) {
-  const itemsMap = new WeakMap()
+  const indexKey = sources.props.indexKey || 'index'
+  const idKey = sources.props.idKey || 'id'
 
-  const uniqeId = (function* () {
-    let id = 1
-    while (1) yield id++
-  })()
+  const innerFragmentKey = sources.key || uniqueId()
 
   const List = makeCollection({
-    item: CollectionItem,
+    item: CollectionItem(idKey),
     collectSinks: instances => {
       return ({
         react: instances
           .pickCombine('react')
           .map(itemVdoms => pragma(
             Fragment,
-            null,
+            { key: innerFragmentKey },
             itemVdoms)
           ),
         state: instances.pickMerge('state')
@@ -143,22 +141,18 @@ export function Collection (sources) {
     }
   })
 
-  const indexKey = sources.props.indexKey || 'index'
-
   const addIndexLens = {
     get: state => state.map((record, idx) => {
-      record[indexKey] = idx
-      if (!itemsMap.has(record)) {
-        itemsMap.set(record, uniqeId.next().value)
+      if (!record[idKey]) {
+        console.warn(
+          `Collection item is expecting id key (${idKey}). You can provide an ` +
+          `empty object for it, like: id: {}`
+        )
       }
-      record[COLLECTION_ITEM_ID] = itemsMap.get(record)
 
-      return record
+      return { ...record, [indexKey]: idx }
     }),
-    set: (state, childState) => childState.map(state => {
-      delete state[indexKey]
-      return state
-    })
+    set: (state, childState) => childState.map(omit(indexKey))
   };
 
   const listCmp = isolate(List, { state: addIndexLens })
