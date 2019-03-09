@@ -166,7 +166,7 @@ const makeTraverseAction = config => (acc, val, path) => {
     // We pass key and props in the sources object
     const sources = (isCmp || isInlineCmp) && {
       ...config.sources,
-      props: val.props,
+      props: { ...config.sources.props, ...val.props },
       key: val[VDOM_ELEMENT_KEY_PROP]
     }
 
