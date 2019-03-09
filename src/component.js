@@ -37,11 +37,11 @@ export function makePragma (originalPragma, Fragment) {
         node,
         {
           ...attr,
+          // Enforce key presence to suppress warnings coming from react pragma.
+          // Not sure if it's a good idea, since in ReactDomains, the warning is
+          // obviously legit...
           key: defaultTo(key, 'power-pragma-autokey-' + uniqueId())
         },
-        // Enforce key presence to suppress warnings coming from react pragma.
-        // Not sure if it's a good idea, since in ReactDomains, the warning is
-        // obviously legit...
         children.flat().map((el, idx) => {
           if (typeof el === 'function') {
             el[VDOM_INLINE_CMP] = true
