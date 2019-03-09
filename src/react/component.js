@@ -1,6 +1,6 @@
 import xs from 'xstream'
 import { h } from '@cycle/react'
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment as ReactFragment, useState, useEffect } from 'react'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import clone from 'lodash/clone'
 
@@ -18,6 +18,7 @@ import {
   powerCycleComponent
 } from '../component.js'
 
+export const Fragment = ReactFragment
 export const pragma = makePragma(h, Fragment)
 
 const CONFIG = {
