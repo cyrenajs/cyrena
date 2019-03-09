@@ -17,43 +17,44 @@ import last from 'lodash/last'
 import uniqueId from 'lodash/uniqueId'
 import clone from 'lodash/clone'
 
-import { isolate } from './react/component'
-
 const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
 const VDOM_ELEMENT_KEY_PROP = Symbol('powercycle.key')
 const VDOM_INLINE_CMP = Symbol('powercycle.inline-cmp')
 
-export const makePragma = pragma => (node, attr, ...children) => {
-  const key = attr && attr.key
+// Fragment is not used here, but conceptually it's closely tied to pragma
+export function makePragma (originalPragma, Fragment) {
+  return (node, attr, ...children) => {
+    const key = attr && attr.key
 
-  // React pragma convert key attribs to string so it's just better to
-  // set it undefined to avoid having an [object Object] key
-  if (attr && typeof attr.key !== 'string') {
-    attr.key = undefined
+    // React pragma convert key attribs to string so it's just better to
+    // set it undefined to avoid having an [object Object] key
+    if (attr && typeof attr.key !== 'string') {
+      attr.key = undefined
+    }
+
+    const ret = ({
+      ...originalPragma(
+        node,
+        {
+          ...attr,
+          key: defaultTo(key, 'power-pragma-autokey-' + uniqueId())
+        },
+        // Enforce key presence to suppress warnings coming from react pragma.
+        // Not sure if it's a good idea, since in ReactDomains, the warning is
+        // obviously legit...
+        children.flat().map((el, idx) => {
+          if (typeof el === 'function') {
+            el[VDOM_INLINE_CMP] = true
+          }
+          return el
+        })
+      ),
+      [VDOM_ELEMENT_FLAG]: true,
+      [VDOM_ELEMENT_KEY_PROP]: key
+    })
+
+    return ret
   }
-
-  const ret = ({
-    ...pragma(
-      node,
-      {
-        ...attr,
-        key: defaultTo(key, 'power-pragma-autokey-' + uniqueId())
-      },
-      // Enforce key presence to suppress warnings coming from react pragma.
-      // Not sure if it's a good idea, since in ReactDomains, the warning is
-      // obviously legit...
-      children.flat().map((el, idx) => {
-        if (typeof el === 'function') {
-          el[VDOM_INLINE_CMP] = true
-        }
-        return el
-      })
-    ),
-    [VDOM_ELEMENT_FLAG]: true,
-    [VDOM_ELEMENT_KEY_PROP]: key
-  })
-
-  return ret
 }
 
 const isComponentNode = node =>
@@ -82,14 +83,15 @@ const isInlineComponent = (val, path) =>
 
 // Power-ups the sources object for shorthands like:
 // sources.react.select(input).events('change') -> sources[input].change
-export const powerUpSources = sources =>
-  new Proxy({ ...sources }, {
+export function powerUpSources (sources) {
+  return new Proxy({ ...sources }, {
     get: (target, prop) => typeof prop === 'symbol'
       ? new Proxy(target.react.select(prop), {
           get: (target, prop) => target.events(prop)
         })
       : Reflect.get(target, prop)
   })
+}
 
 const depowerSources = clone
 
@@ -159,7 +161,7 @@ const makeTraverseAction = config => (acc, val, path) => {
       isInlineCmp && resolveShorthandOutput(config, val)
 
     const cmp = (isCmp || isInlineCmp) &&
-      (lens ? isolate(regularCmp, lens) : regularCmp)
+      (lens ? config.isolateFn(regularCmp, lens) : regularCmp)
 
     // We pass key and props in the sources object
     const sources = (isCmp || isInlineCmp) && {

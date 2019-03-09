@@ -9,8 +9,8 @@ import _get from 'lodash/get'
 import castArray from 'lodash/castArray'
 import uniqueId from 'lodash/uniqueId'
 
-import cycleIsolate from '@cycle/isolate'
 import { makeCollection } from '@cycle/state'
+import cycleIsolate from '@cycle/isolate'
 
 import {
   makePragma,
@@ -18,12 +18,13 @@ import {
   powerCycleComponent
 } from '../component.js'
 
-export const pragma = makePragma(h)
+export const pragma = makePragma(h, Fragment)
 
 const CONFIG = {
   vdomProp: 'react',
   combineFn: streams => xs.combine(...streams),
-  mergeFn: streams => xs.merge(...streams)
+  mergeFn: streams => xs.merge(...streams),
+  isolateFn: isolate
 }
 
 const isReactComponent = val =>
