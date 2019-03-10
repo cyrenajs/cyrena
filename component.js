@@ -91,7 +91,11 @@ const isInlineComponent = (val, path) =>
 const eventsProxy = (target, prop) => {
   const selector = typeof prop === 'symbol' && Symbol.keyFor(prop) || prop
   return new Proxy(target.react.select(selector), {
-    get: (target, prop) => target.events(prop)
+    get: (target, prop) => target[prop] ||
+      new Proxy(target.events(prop), {
+        get: (target, prop) => target[prop] ||
+          target.map(ev => get(ev, prop))
+      })
   })
 }
 
