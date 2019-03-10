@@ -66,7 +66,7 @@ const isComponentNode = node =>
 const isElement = val =>
   val && (
     val[VDOM_ELEMENT_FLAG] ||
-    // Our pragma is not called in case of react fragments, so we still
+    // Our pragma is not called in case of react Fragments, so we still
     // need to specifically check for react elements - but luckily it doesn't
     // need additional dependency in this module, so it's okay
     val.$$typeof === Symbol.for('react.element')
@@ -106,7 +106,7 @@ export function powerUpSources (sources) {
           })
         : typeof prop === 'symbol'
           ? eventsProxy(target, prop)
-          : Reflect.get(target, prop)
+          : target[prop]
   })
 }
 
