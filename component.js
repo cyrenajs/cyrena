@@ -86,8 +86,8 @@ const isInlineComponent = (val, path) =>
 
 // Power-ups the sources object for shorthands like:
 // sources.react.select(input).events('change') -> sources[input].change
-// sources.react.select('input').events('change') -> sources[$('input')].change
-// sources.react.select('input').events('change') -> sources.$.input.change
+// sources.react.select('input').events('change') -> sources[sel('input')].change
+// sources.react.select('input').events('change') -> sources.sel.input.change
 const eventsProxy = (target, prop) => {
   const selector = typeof prop === 'symbol' && Symbol.keyFor(prop) || prop
   return new Proxy(target.react.select(selector), {
@@ -95,12 +95,12 @@ const eventsProxy = (target, prop) => {
   })
 }
 
-export const $ = name => Symbol.for(name)
+export const sel = name => Symbol.for(name)
 
 export function powerUpSources (sources) {
   return new Proxy({ ...sources }, {
     get: (target, prop) =>
-      prop === '$' && !target[prop]
+      prop === 'sel' && !target[prop]
         ? new Proxy({}, {
             get: (dummy, prop) => eventsProxy(target, prop)
           })
