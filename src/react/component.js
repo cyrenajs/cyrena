@@ -108,7 +108,7 @@ export function isolate(Cmp, lens) {
 export const COLLECTION_DELETE =
   prevState => undefined
 
-export const CollectionItem = idKey => sources =>
+const CollectionItem = idKey => sources =>
   component(
     pragma(
       Fragment,
@@ -127,6 +127,12 @@ export function Collection (sources) {
 
   const List = makeCollection({
     item: CollectionItem(idKey),
+
+    // I'm not sure what it's for. From cycle's source, it seems like that it
+    // serves as an isolation base, but we already have isolation on the items...
+    // itemKey: (childState, index) => String(index),
+
+    itemScope: key => key,
     collectSinks: instances => {
       return ({
         react: instances
@@ -134,7 +140,10 @@ export function Collection (sources) {
           .map(itemVdoms => pragma(
             Fragment,
             { key: innerFragmentKey },
-            itemVdoms
+            itemVdoms.map((vdom, idx) => ({
+              ...vdom,
+              key: String(idx)
+            }))
           )),
         state: instances.pickMerge('state')
       })

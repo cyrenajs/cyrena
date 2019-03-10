@@ -17,6 +17,8 @@ import last from 'lodash/last'
 import uniqueId from 'lodash/uniqueId'
 import clone from 'lodash/clone'
 
+import cycleIsolate from '@cycle/isolate'
+
 const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
 const VDOM_ELEMENT_KEY_PROP = Symbol('powercycle.key')
 const VDOM_INLINE_CMP = Symbol('powercycle.inline-cmp')
@@ -87,7 +89,7 @@ const isInlineComponent = (val, path) =>
 export function powerUpSources (sources) {
   return new Proxy({ ...sources }, {
     get: (target, prop) => typeof prop === 'symbol'
-      ? new Proxy(target.react.select(prop), {
+      ? new Proxy(target.react.select(Symbol.keyFor(prop) || prop), {
           get: (target, prop) => target.events(prop)
         })
       : Reflect.get(target, prop)
@@ -149,11 +151,6 @@ const makeTraverseAction = config => (acc, val, path) => {
   const isCmp = isComponentNode(val)
   const isInlineCmp = isInlineComponent(val, path)
 
-  // Add key props to prevent React warnings
-  if (isElement(val)) {
-    val.key = defaultTo(val.key, 'powercycle-traverse-autokey-' + uniqueId())
-  }
-
   if (isStream || isCmp || isInlineCmp) {
     const lens = isCmp && getLens(val.props.lens)
 
@@ -161,17 +158,31 @@ const makeTraverseAction = config => (acc, val, path) => {
       isCmp && resolveShorthandOutput(config, val.type) ||
       isInlineCmp && resolveShorthandOutput(config, val)
 
-    const cmp = (isCmp || isInlineCmp) &&
-      (lens ? config.isolateFn(regularCmp, lens) : regularCmp)
+    const cmp = (isCmp || isInlineCmp) && (
+      lens
+        ? config.isolateFn(regularCmp, lens)
+        // Automatically isolate component vdoms unless 'noscope' is specified
+        : get(val, 'props.noscope')
+          ? regularCmp
+          : cycleIsolate(regularCmp, {
+            [config.vdomProp]: path.join('.'),
+            '*': null
+          })
+      )
 
     // We pass key and props in the sources object
     const sources = (isCmp || isInlineCmp) && {
       ...config.sources,
-      props: { ...config.sources.props, ...val.props },
+      // Merge outer props onto inner. Normally the outer one (val.props)
+      // should be sufficient, but lens wrapping makes it lost, and so we
+      // have to dig it out from args
+      props: {
+        ...config.sources.props,
+        ...val.props
+      },
       key: val[VDOM_ELEMENT_KEY_PROP]
     }
 
-    // We put it in an array to handle different output styles below
     const sinks =
       (isCmp || isInlineCmp) && cmp(sources)
 
@@ -222,6 +233,11 @@ export function powerCycleComponent (vdom, config) {
       const _root = cloneDeepVdom(root)
 
       zip(signalValues, streamInfoRecords).forEach(([val, info]) => {
+        if (isElement(val) && !val.key) {
+          // Due to heavy auto-scoping, these elements are often context.providers
+          // and this is our last chance to provide them with keys
+          val = { ...val, key: info.path.join('.') }
+        }
         set(_root, info.path, val)
       })
 
