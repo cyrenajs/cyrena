@@ -9,7 +9,13 @@ function Timer(sources) {
 }
 ```
 
-See the [Showcase](https://codesandbox.io/s/nkl4y01600)
+See the examples below:
+* [Hello World](https://codesandbox.io/s/94n4j2vxmw)
+* [Timer](https://codesandbox.io/s/1znx4w2xwq)
+* [Counter](https://codesandbox.io/s/5w53z5401p)
+* [Todo List - simple](https://codesandbox.io/s/n7m44yjo0j)
+* [Todo List - advanced](https://codesandbox.io/s/2wv3r9ojqp)
+* [A full showcase](https://codesandbox.io/s/nkl4y01600)
 
 ## Introduction
 
