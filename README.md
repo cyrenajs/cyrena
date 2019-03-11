@@ -1,7 +1,15 @@
 # Powercycle
 Power-up Cycle.js with stream-based VDOM composition, seamless React interop and fun
 
-[Full showcase](https://codesandbox.io/s/nkl4y01600)
+```javascript
+function Timer(sources) {
+  return (
+    <h2>Timer: {xs.periodic(1000)}</h2>
+  )
+}
+```
+
+See the [Showcase](https://codesandbox.io/s/nkl4y01600)
 
 ## Introduction
 
