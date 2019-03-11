@@ -1,7 +1,7 @@
 # Powercycle
 Power-up Cycle.js with stream-based VDOM composition, seamless React interop and fun
 
-```javascript
+```jsx
 function Timer(sources) {
   return (
     <h2>Timer: {xs.periodic(1000)}</h2>
