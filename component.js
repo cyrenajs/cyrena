@@ -84,10 +84,11 @@ const isMostProbablyStream = val =>
 const isInlineComponent = (val, path) =>
   val && val[VDOM_INLINE_CMP]
 
-// Power-ups the sources object for shorthands like:
-// sources.react.select(input).events('change') -> sources[input].change
-// sources.react.select('input').events('change') -> sources[sel('input')].change
-// sources.react.select('input').events('change') -> sources.sel.input.change
+// Power-ups the sources object to make all these shorthands available:
+// sources.react.select('input').events('change').map(ev => ev.target.value)
+// sources.sel.input.events('change').map(ev => ev.target.value)
+// sources.sel.input.change.map(ev => ev.target.value)
+// sources.sel.input.change['target.value']
 const eventsProxy = (target, prop) => {
   const selector = typeof prop === 'symbol' && Symbol.keyFor(prop) || prop
   return new Proxy(target.react.select(selector), {
@@ -226,10 +227,9 @@ const cloneDeepVdom = obj => cloneDeepWith(obj, value => {
 })
 
 export function powerCycleComponent (vdom, config) {
-
-  // This one-time clone is needed to be able to
-  // amend the read-only react vdom with auto generated keys
-  const root = [cloneDeepVdom(vdom)]
+  // Wrap it in an array to make path-based substitution work with root
+  // streams
+  const root = [vdom]
 
   const streamInfoRecords = traverse(
     makeTraverseAction({ ...config, sources: depowerSources(config.sources) }),
@@ -253,7 +253,7 @@ export function powerCycleComponent (vdom, config) {
       zip(signalValues, streamInfoRecords).forEach(([val, info]) => {
         if (isElement(val) && !val.key) {
           // Due to heavy auto-scoping, these elements are often context.providers
-          // and this is our last chance to provide them with keys
+          // and this is our last and best chance to amend them with keys
           val = { ...val, key: info.path.join('.') }
         }
         set(_root, info.path, val)
