@@ -35,8 +35,25 @@ Install the usual Cycle/react dependencies:
 1. [Shortcuts and Helpers](#shortcuts-and-helpers)
 
 ### Static VDOM composition
+
+Soon to be filled
+
 ### Streams and components everywhere
+
+Soon to be filled
+
 ### Lenses
+
+Soon to be filled
+
 ### React realms
+
+Soon to be filled
+
 ### Collection
+
+Soon to be filled
+
 ### Shortcuts and Helpers
+
+Soon to be filled
