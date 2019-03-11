@@ -1,7 +1,7 @@
 {
-  "name": "powercycle",
-  "version": "0.8.0",
-  "description": "Powerful Cycle JS extension for static VDOM composition and even more seamless React interoperability",
+  "name": "Powercycle",
+  "version": "0.8.1",
+  "description": "Power-up Cycle.js",
   "main": "react/component.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -24,7 +24,7 @@
   "bugs": {
     "url": "https://github.com/sarimarton/powercycle/issues"
   },
-  "homepage": "https://github.com/sarimarton/powercycle#readme",
+  "homepage": "https://sarimarton.github.io/powercycle/",
   "dependencies": {
     "@cycle/isolate": "^5.0.0",
     "@cycle/state": "^1.2.0",
