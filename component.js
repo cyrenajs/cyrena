@@ -61,19 +61,12 @@ const isMostProbablyStream = val =>
 const isInlineComponent = (val, path) =>
   val && val[VDOM_INLINE_CMP]
 
-export function isolate(Cmp, lens) {
-  return function (sources) {
-    return component(
-      pragma(
-        Fragment,
-        null,
-        pragma(cycleIsolate(Cmp, lens), null, ...castArray(sources.props.children))
-      ),
-      null,
-      sources
-    )
-  }
-}
+export const isolate = (Cmp, lens) => sources =>
+  component(
+    pragma(cycleIsolate(Cmp, lens), null, ...castArray(sources.props.children)),
+    null,
+    sources
+  )
 
 // Power-ups the sources object to make all these shorthands available:
 // sources.react.select('input').events('change').map(ev => ev.target.value)
@@ -204,7 +197,7 @@ const makeTraverseAction = config => (acc, val, path) => {
   return [acc, isStream || isCmp || isInlineCmp]
 }
 
-const cloneDeepVdom = obj => cloneDeepWith(obj, value => {
+const cloneDeepVdom = vdom => cloneDeepWith(vdom, value => {
   if (
     isMostProbablyStream(value) ||
     value && value.$$typeof === Symbol.for('react.forward_ref')
@@ -241,9 +234,12 @@ const makeComponent = config => (vdom, eventSinks, sources) => {
 
       zip(signalValues, streamInfoRecords).forEach(([val, info]) => {
         if (isElement(val) && !val.key) {
-          // Due to heavy auto-scoping, these elements are often context.providers
-          // and this is our last and best chance to amend them with keys
-          val = { ...val, key: info.path.join('.') }
+          // info.path.join('.') would be nice, but produces "0" keys on sibling
+          // lens-ed components. uniqueId is not a good idea, it causes focus
+          // loss. Object instance seems to work nicely. We could make a unique
+          // string from it with a WeakMap, or do a better job digging out the
+          // parent path and appending our path to it; but for now, it just works.
+          val = { ...val, key: info }
         }
         set(_root, info.path, val)
 
