@@ -1,5 +1,6 @@
 # Powercycle
-Powercycle is an extension for the wonderful framework Cycle.js which puts the view in the center, to make composition as it meant to be.
+
+Powercycle is an extension for the wonderful framework Cycle.js. It powers it up to the next level so it almost looks like a new framework! It puts the view in the center, to make composition as easy and trivial as it is in React - while keeping all the benefits of a purely functional-reactive environment. Any regular Cycle.js and React component can be included seamlessly in a Powercycle app.
 
 ```jsx
 function Timer(sources) {
@@ -17,11 +18,23 @@ See the examples below:
 * [Todo List - advanced](https://codesandbox.io/s/2wv3r9ojqp)
 * [A full showcase](https://codesandbox.io/s/nkl4y01600)
 
-## Introduction
+## Motivation
 
-Powercycle is an extension for the wonderful framework Cycle.js which puts the view in the center, to make composition as it meant to be. It also brings seamless React integration with Cycle state, and many more fun features. It removes the usual boilerplates Cycle.js has, and the mental obstacles which new-learners face. Any regular Cycle.js component can be included in a Powercycle app. Powercycle currently only supports the React VDOM driver.
 
-## Installation
+
+
+## Guide
+
+1. [Installation](#installation)
+1. [Getting Started](#getting-started)
+1. [Static VDOM composition](#static-vdom-composition)
+1. [Streams and components everywhere](#streams-and-components-everywhere)
+1. [Lenses](#lenses)
+1. [React realms](#react-realms)
+1. [Collection](#collection)
+1. [Helpers, Shortcuts and Tips](#helpers-shortcuts-and-tips)
+
+### Installation
 
 Install powercycle and its peer dependencies:
 
@@ -31,29 +44,39 @@ Install the usual Cycle/react dependencies:
 
 `npm install @cycle/run @cycle/react-dom @cycle/state`
 
-## Guide
-
-1. [Getting Started](#getting-started)
-1. [Static VDOM composition](#static-vdom-composition)
-1. [Streams and components everywhere](#streams-and-components-everywhere)
-1. [Lenses](#lenses)
-1. [React realms](#react-realms)
-1. [Collection](#collection)
-1. [Shortcuts and Helpers](#shortcuts-and-helpers)
-
 ### Getting Started
 
-Make sure you followed the [Installation](#installation) steps to get the necessary packages at hand, and that your setup can handle JSX, because Powercycle was made with JSX in mind. Powercycle has its own JSX pragma, so you have to import the pragma and the fragment symbol.
+Besides following the [Installation](#installation) steps, make sure that your setup can handle JSX, because Powercycle was made with JSX in mind. Powercycle has its own JSX pragma, so you have to specify the pragma in your setup. One way of doing it is importing the default export from the powercycle package:
+
+```jsx
+import withPower from 'powercycle'
+/** @jsx withPower.pragma */
+/** @jsxFrag withPower.Fragment */
+```
+
+Obviously you can skip using JSX, if you really wish, but you'll still need the pragma.
+
+Now that we're done with the setup, we're ready to start using the extension.
 
 ### Static VDOM composition
 
-Powercycle's core utility is the `component` function, which takes 3 arguments, and returns a regular Cycle.js sinks object. (Don't pick on the name, at the end of the day, you won't even need to use this function. But let's go step by step.) The first argument is a static VDOM, which can contain streams in any position, Cycle.js components as elements, and even inline components! The second argument is the sinks object, which contains all the sink channels apart from the view. The third argument is the sources object which Powercycle will pass to all of the components found in the VDOM.
+We've seen the default import above named `withPower`, but let's forget that for now. Powercycle's core utility is the `component` function, which takes 3 arguments, and returns a regular Cycle.js _sinks_ object. (Don't pick on the name `component`; at the end of the day, you won't even need to use this function.)
+
+1. The first argument is a static VDOM, which can contain streams and other components (even inline components!). We'll see them later.
+1. The second argument is the sinks object, which contains all of the sink channels for the current component, except the view channel.
+1. The third argument is the sources object which Powercycle will pass to all of the components found in the VDOM.
+
+Let's see an example:
 
 ```jsx
-function MyComponent(sources) {
-  // ...
+// Regular Cycle.js component
+function ParentCmp(sources) {
+
+  const childCmpSinks = Child(sources)
+
   return {
-    react: state$.map(state => <div>{state}</div>)
+    react: xs.combine(state$
+      .map(state => <div>{state}</div>)
     state: reducer$
   }
 }
@@ -65,32 +88,40 @@ becomes:
 function MyComponent(sources) {
   // ...
   return component(
-    <div>{$state}</div>
+    <div>{state$}</div>
     { state: reducer$ },
     sources
   )
 }
 ```
 
-
-Soon to be filled
-
 ### Streams and components everywhere
 
-Soon to be filled
+The precise rules for where and how dynamic values can appear in a VDOM:
+* streams can be placed among VDOM children and props, even deeply nested
+* components be placed as VDOM nodes
+* inline components can be placed as VDOM child
+
 
 ### Lenses
 
-Soon to be filled
+Any VDOM component can have a `lens` prop, which will act as a regular Cycle.js lens for the given component.
 
 ### React realms
 
-Soon to be filled
+React components can be included in the VDOM by wrapping them in the ReactRealm component. To use the state from the Cycle.js environment, Powercycle contains as `useCycleState` hook. You can put any content inside the opening and closing `<ReactRealm>` tags, but everything there 
 
 ### Collection
 
-Soon to be filled
+Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you scope down the state with a [`lens`](#lenses) prop either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags.
 
-### Shortcuts and Helpers
+### Helpers, Shortcuts and Tips
 
-Soon to be filled
+* *map*
+  The `map` utility function is a handy helper to get the state in the VDOM. It has 2 signatures:
+  * map(mapperFn, <sources>)
+  * map(mapperFn)
+* *get*
+* *View selection shortcuts*
+* *How to opt-out from the Powercycle control
+  Just return with a regular sinks object, and the underlaying components will not be controlled by Powercycle.
