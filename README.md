@@ -196,9 +196,80 @@ function Panel(sources) {
 }
 ```
 
+One important fact to realize here is that the Panel component is not invoked by the app developer, but by Powercycle. So Powercycle sees its output, and it can automatically call the component function on it, so we have less to type:
+
+```jsx
+function Panel(sources) {
+  return [
+    <div className="some panel styling">
+      <h2 className="title">{sources.props.title}</h2>
+      {sources.props.children}
+    </div>,
+    null,
+    sources
+  ]
+}
+```
+
+This convenien shortcut changes the regular signature of a Cycle.js component's output, but we'll see how it hugely pays off.
+We can even omit the sources object too, because Powercycle already has it from the first `component` call. If there's no non-view sink channel for the component, we can omit the second parameter too and the array wrapping, so this results in as simple as this:
+
+```jsx
+function Panel(sources) {
+  return (
+    <div className="some panel styling">
+      <h2 className="title">{sources.props.title}</h2>
+      {sources.props.children}
+    </div>
+  )
+}
+```
+
 #### withPower
 
-As you can 
+Every component which returns with the shortcut return format, conveys the same amount of information as a regular Cycle.js component, it's just 'controlled' by Powercycle. The only thing we have to watch out for, is to have a root `component` call to have the VDOM 'controlled'. It turns out, we can wrap our main component in a higher order function to do this:
+
+```jsx
+run(withPower(main), drivers)
+```
+
+```jsx
+import withPower from 'powercycle'
+/** @jsx withPower.pragma */
+/** @jsxFrag withPower.Fragment */
+
+function Child(sources) {
+  // ...
+
+  return [
+    <>
+      <div>...</div>
+      ...
+    </>,
+    { state: reducer$ }
+  ]
+}
+
+function main(sources) {
+  // ...
+
+  return [
+    <>
+      <h2>Title</h2>
+      <Child />
+    </>,
+    { state: reducer$ }
+  ]
+}
+
+const drivers = {
+  react: makeDOMDriver(document.getElementById('app'))
+}
+
+run(withState(withPower(main)), drivers)
+
+```
+
 
 ### Streams and components everywhere
 
