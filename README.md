@@ -19,6 +19,8 @@ See the examples below:
 * [A full showcase](https://codesandbox.io/s/nkl4y01600)
 
 ## Motivation
+<details>
+    <summary>Click to expand</summary>
 
 React and Cycle.js have separate benefits and compromises, and I wanted to bring together the benefits.
 
@@ -35,6 +37,8 @@ But all this comes at the price of an unconventional programming model, where th
 Cycle.js is a purely functional-reactive framework, and I won't detail how useful this fact is. It's also quite mature in its current state. Components are static, they're called once, and not by a runtime, but simply by the app. The downside of it is that it's _not view-based_. Sure, we do have the view part, and it can even be JSX, but unfortunately this view part is not in the static scope. It's in the same iteratee-realm in which React is. But here it comes with a serious consequence: there's no composition! You have to do even basic composition with cumbersome boilerplate.
 
 This led me to explore the possibilities to make something as simple and composoble as React, but as _right_ as Cycle.js. And this is Powercycle.
+
+</details>
 
 ## Guide
 
