@@ -92,8 +92,11 @@ function Cmp(sources) {
     react: state$.map(state => <div>{state}</div>)
   }
 }
+```
 
-// turns into:
+It turns into:
+
+```jsx
 function Cmp(sources) {
   const state$ = sources.state.stream
 
@@ -105,10 +108,9 @@ function Cmp(sources) {
 }
 ```
 
-At the moment it doesn't seem to be much better, but what happens when you want to include a child component which shows the state? It might be a panel or a fieldset:
+At the moment it doesn't seem to be much more useful, but what happens when you want to include a child component which shows the state? It might be a panel or a fieldset:
 
 ```jsx
-// Regular Cycle.js component
 function Cmp(sources) {
   const state$ = sources.state.stream
   
@@ -123,8 +125,11 @@ function Cmp(sources) {
     )
   }
 }
+```
 
-// turns into:
+With Powercycle:
+
+```jsx
 function Cmp(sources) {
   const state$ = sources.state.stream
 
@@ -166,13 +171,30 @@ function Cmp(sources) {
 ```
 let's just first see what the `component` function does exactly:
 
-* It traverses the VDOM and collects stream
-* Combines the streams and the components' view sinks, and substitutes them back to the original structure.
-* Merges all the non-view sinks from the components found in the VDOM and the provided sinks object
+* It traverses the VDOM and searches for streams and components (functions).
+  * When it finds a stream as a VDOM child, it collects the stream
+  * When it finds a stream as prop on a DOM node (not component node), it collects the stream
+  * When it finds a component (function) node, it invokes it with the sources objects, and collects its sinks. It doesn't continue the traversal under the component node, but it also passes the props object as `sources.props`. The inner component can access the children as `sources.props.children`.
+  * When it finds a component as a VDOM child, it invokes the component with the sources object and collects its sinks.
+* It creates a view stream for the outer component which combines all the view streams it collected, and which emits those stream updates in the original VDOM structure.
+* It collects all the non-view sink channels which were found in the inner components' sinks objects, and merges them all by channel. It also adds the sinks of the second argument to the merges. The result sinks object will be the return value of the `component` function.
 
 #### Shorthand return from components
 
-Powercycle will collect all the streams and components from the VDOM, executes the components and collect their sink streams as well, and creates a VDOM stream which updates when any of the streams or the view stream of the components emits. It's important to note that Powercycles stops the VDOM traversal on component nodes - just as you'd expect. The underlying VDOM part for a component node is handled by that enclosing component, which receives the VDOM children in `sources.props.children`. Also you can get the rest of the VDOM props in `sources.props`.
+From the last example of the previous section we learned that the VDOM traversal stops at the Panel component. The Panel component can do anything with the state$ stream which it received through `sources.props.children`. It can even dismiss it. This is the same behavior as React does. In order to see the state in the app, the Panel component must include its `sources.props.children` in its VDOM:
+
+```jsx
+function Panel(sources) {
+  return component(
+    <div className="some panel styling">
+      <h2 className="title">{sources.props.title}</h2>
+      {sources.props.children}
+    </div>,
+    null,
+    sources
+  )
+}
+```
 
 #### withPower
 
