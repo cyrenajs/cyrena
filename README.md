@@ -20,8 +20,21 @@ See the examples below:
 
 ## Motivation
 
+React and Cycle.js have separate benefits and compromises, and I wanted to bring together the benefits.
 
+### React
 
+React's benefits are that it's view-based, and imperative. Imperative means that the developer works with first-order values and nudges the application further by calling setState imperatively. This is by far the most accessible way for developers to proceed and get things done.
+
+Being view-based means, that when we see a piece of React code, we immediately recognize the structure of the app or component by having a glimpse on the JSX part.
+
+But all this comes at the price of an unconventional programming model, where the render function gets called many times by the runtime. And having the ability to return with completely different output VDOMs based on different inputs, defeats the purpose of the JSX as a structural overview. In idiomatic React code, most of the JSX is conceptually static hierarchy, which contains changing bits and pieces. But in reality, not just the changing parts, but all the conceptually static parts, too, are re-evaluated and matched with the previous output. Sometimes it needs special awarenes. And this reasoning goes for the logic as well, with the well-known [Rules of Hooks](https://reactjs.org/docs/hooks-rules.html). This might not be a big deal, you might think, but what I think is that we can do it better.
+
+### Cycle.js
+
+Cycle.js is a purely functional-reactive framework, and I won't detail how useful this fact is. It's also quite mature in its current state. Components are static, they're called once, and not by a runtime, but simply by the app. The downside of it is that it's _not view-based_. Sure, we do have the view part, and it can even be JSX, but unfortunately this view part is not in the static scope. It's in the same iteratee-realm in which React is. But here it comes with a serious consequence: there's no composition! You have to do even basic composition with cumbersome boilerplate.
+
+This led me to explore the possibilities to make something as simple and composoble as React, but as _right_ as Cycle.js. And this is Powercycle.
 
 ## Guide
 
@@ -62,38 +75,67 @@ Now that we're done with the setup, we're ready to start using the extension.
 
 We've seen the default import above named `withPower`, but let's forget that for now. Powercycle's core utility is the `component` function, which takes 3 arguments, and returns a regular Cycle.js _sinks_ object. (Don't pick on the name `component`; at the end of the day, you won't even need to use this function.)
 
-1. The first argument is a static VDOM, which can contain streams and other components (even inline components!). We'll see them later.
-1. The second argument is the sinks object, which contains all of the sink channels for the current component, except the view channel.
+1. The first argument is a static VDOM, which can contain streams and other components (even inline components! We'll see them later).
+1. The second argument is the sinks object, which contains all of the sinks for the current component, _except the view_. 
 1. The third argument is the sources object which Powercycle will pass to all of the components found in the VDOM.
 
-Let's see an example:
+Let's see a simple example:
 
 ```jsx
 // Regular Cycle.js component
-function ParentCmp(sources) {
+function Cmp(sources) {
+  const state$ = sources.state.stream
+  
+  return {
+    react: state$.map(state => <div>{state}</div>),
+    state: xs.merge(reducer$ /* , other reducers */)
+  }
+}
 
-  const childCmpSinks = Child(sources)
+function ParentCmp(sources) {
+  const state$ = sources.state.stream
+  
+  const childSinks = ChildCmp(sources)
 
   return {
-    react: xs.combine(state$
-      .map(state => <div>{state}</div>)
-    state: reducer$
+    react: xs.combine(state$, childSinks.react)
+      .map(([state, childVdom]) =>
+        <div>
+          State: {JSON.stringify(state)}<br />
+          Child:<br />
+          {childVdom}
+        </div>
+      ),
+    state: xs.merge(reducer$, childSinks.state)
   }
 }
 ```
 
-becomes:
+With becomes:
 
 ```jsx
-function MyComponent(sources) {
+function ParentCmp(sources) {
   // ...
   return component(
-    <div>{state$}</div>
-    { state: reducer$ },
+    <div{state$}</div>,
+    null,
     sources
   )
 }
 ```
+
+Now you might ask why it useful at all
+Let's see what 
+* Combines the streams and the components' view sinks, and substitutes them back to the original structure.
+* Merges all the non-view sinks from the components found in the VDOM and the provided sinks object
+
+#### Shorthand return from components
+
+Powercycle will collect all the streams and components from the VDOM, executes the components and collect their sink streams as well, and creates a VDOM stream which updates when any of the streams or the view stream of the components emits. It's important to note that Powercycles stops the VDOM traversal on component nodes - just as you'd expect. The underlying VDOM part for a component node is handled by that enclosing component, which receives the VDOM children in `sources.props.children`. Also you can get the rest of the VDOM props in `sources.props`.
+
+#### withPower
+
+As you can 
 
 ### Streams and components everywhere
 
@@ -101,7 +143,6 @@ The precise rules for where and how dynamic values can appear in a VDOM:
 * streams can be placed among VDOM children and props, even deeply nested
 * components be placed as VDOM nodes
 * inline components can be placed as VDOM child
-
 
 ### Lenses
 
