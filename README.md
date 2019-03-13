@@ -24,19 +24,19 @@ See the examples below:
 
 React and Cycle.js have separate benefits and compromises, and I wanted to bring together the benefits.
 
-### React
+<h3>React</h3>
 
-React's benefits are that it's view-based, and imperative. Imperative means that the developer works with first-order values and nudges the application further by calling setState imperatively. This is by far the most accessible way for developers to proceed and get things done.
+<p>React's benefits are that it's view-based, and imperative. Imperative means that the developer works with first-order values and nudges the application further by calling setState imperatively. This is by far the most accessible way for developers to proceed and get things done.</p>
 
-Being view-based means, that when we see a piece of React code, we immediately recognize the structure of the app or component by having a glimpse on the JSX part.
+<p>Being view-based means, that when we see a piece of React code, we immediately recognize the structure of the app or component by having a glimpse on the JSX part.</p>
 
-But all this comes at the price of an unconventional programming model, where the render function gets called many times by the runtime. And having the ability to return with completely different output VDOMs based on different inputs, defeats the purpose of the JSX as a structural overview. In idiomatic React code, most of the JSX is conceptually static hierarchy, which contains changing bits and pieces. But in reality, not just the changing parts, but all the conceptually static parts, too, are re-evaluated and matched with the previous output. Sometimes it needs special awarenes. And this reasoning goes for the logic as well, with the well-known [Rules of Hooks](https://reactjs.org/docs/hooks-rules.html). This might not be a big deal, you might think, but what I think is that we can do it better.
+<p>But all this comes at the price of an unconventional programming model, where the render function gets called many times by the runtime. And having the ability to return with completely different output VDOMs based on different inputs, defeats the purpose of the JSX as a structural overview. In idiomatic React code, most of the JSX is conceptually static hierarchy, which contains changing bits and pieces. But in reality, not just the changing parts, but all the conceptually static parts, too, are re-evaluated and matched with the previous output. Sometimes it needs special awarenes. And this reasoning goes for the logic as well, with the well-known <a href="https://reactjs.org/docs/hooks-rules.html">Rules of Hooks</a>. This might not be a big deal, you might think, but what I think is that we can do it better.</p>
 
-### Cycle.js
+<h3>Cycle.js</h3>
 
-Cycle.js is a purely functional-reactive framework, and I won't detail how useful this fact is. It's also quite mature in its current state. Components are static, they're called once, and not by a runtime, but simply by the app. The downside of it is that it's _not view-based_. Sure, we do have the view part, and it can even be JSX, but unfortunately this view part is not in the static scope. It's in the same iteratee-realm in which React is. But here it comes with a serious consequence: there's no composition! You have to do even basic composition with cumbersome boilerplate.
+<p>Cycle.js is a purely functional-reactive framework, and I won't detail how useful this fact is. It's also quite mature in its current state. Components are static, they're called once, and not by a runtime, but simply by the app. The downside of it is that it's <em>not view-based</em>. Sure, we do have the view part, and it can even be JSX, but unfortunately this view part is not in the static scope. It's in the same iteratee-realm in which React is. But here it comes with a serious consequence: there's no composition! You have to do even basic composition with cumbersome boilerplate.</p>
 
-This led me to explore the possibilities to make something as simple and composoble as React, but as _right_ as Cycle.js. And this is Powercycle.
+<p>This led me to explore the possibilities to make something as simple and composoble as React, but as <em>right</em> as Cycle.js. And this is Powercycle.</p>
 
 </details>
 
