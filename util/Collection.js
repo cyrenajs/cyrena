@@ -3,7 +3,7 @@ import omit from 'lodash/fp/omit'
 
 import { pragma, Fragment } from '../react/pragma'
 import { makeCollection } from '@cycle/state'
-import { powercycle, isolate } from '../component'
+import { powercycle, isolate } from '../powercycle'
 import { get } from './index'
 
 export const COLLECTION_DELETE =
