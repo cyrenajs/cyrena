@@ -2,12 +2,12 @@ import castArray from 'lodash/castArray'
 import _get from 'lodash/get'
 
 import { pragma, Fragment } from '../react/pragma'
-import { component } from '../component'
+import { powercycle } from '../component'
 
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
 export function Scope (sources) {
-  return component(
+  return powercycle(
     pragma(Fragment, null, ...castArray(sources.props.children)),
     null,
     sources

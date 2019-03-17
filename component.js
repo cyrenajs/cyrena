@@ -62,7 +62,7 @@ const isInlineComponent = (val, path) =>
   val && val[VDOM_INLINE_CMP]
 
 export const isolate = (Cmp, lens) => sources =>
-  component(
+  powercycle(
     pragma(cycleIsolate(Cmp, lens), null, ...castArray(sources.props.children)),
     null,
     sources
@@ -108,14 +108,14 @@ const depowerSources = clone
 // true for isolation'd components of course, but as we take over the
 // cmp invocation job, including isolation, we can still intercept the
 // sources object. The shorthand return form requires at least one initial
-// component() call at the top of the hierarchy, which can be achieved with
+// powercycle() call at the top of the hierarchy, which can be achieved with
 // the withPower() utility as well
 const resolveShorthandOutput = cmp => sources => {
   const output = castArray(cmp(powerUpSources(sources)))
 
   return isElement(output[0])
     // it's a shorthand return value
-    ? component(output[0], output[1], output[2] || sources)
+    ? powercycle(output[0], output[1], output[2] || sources)
     // it's a regular cyclejs sinks object
     : output[0]
 }
@@ -206,7 +206,7 @@ const cloneDeepVdom = vdom => cloneDeepWith(vdom, value => {
   }
 })
 
-const makeComponent = config => (vdom, eventSinks, sources) => {
+const makePowercycle = config => (vdom, eventSinks, sources) => {
   // Wrap it in an array to make path-based substitution work with root
   // streams
   const root = [vdom]
@@ -275,12 +275,12 @@ const makeComponent = config => (vdom, eventSinks, sources) => {
   }
 }
 
-export const component = makeComponent(CONFIG)
+export const powercycle = makePowercycle(CONFIG)
 
 // Wrapper for any cycle component for the convenience of shorthand
-// return values. An initial component() call makes the component 'controlled',
+// return values. An initial powercycle() call makes the component 'controlled',
 // so the sources object is passed to every component child in the tree.
 export default Object.assign(
-  Cmp => sources => component(pragma(Cmp), null, sources),
+  Cmp => sources => powercycle(pragma(Cmp), null, sources),
   { pragma, Fragment }
 )

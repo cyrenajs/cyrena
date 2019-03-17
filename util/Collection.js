@@ -3,14 +3,14 @@ import omit from 'lodash/fp/omit'
 
 import { pragma, Fragment } from '../react/pragma'
 import { makeCollection } from '@cycle/state'
-import { isolate, component } from '../component'
+import { powercycle, isolate } from '../component'
 import { get } from './index'
 
 export const COLLECTION_DELETE =
   prevState => undefined
 
 const CollectionItem = idKey => sources =>
-  component(
+  powercycle(
     pragma(
       Fragment,
       { key: get(idKey, sources) },
