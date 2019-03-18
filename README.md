@@ -302,7 +302,7 @@ Powercycle collects streams and components from the VDOM according to the follow
 
 ### Scopes
 
-Any VDOM component can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given component. As components act as boundaries in the Powercycle traversals, a scope will not just affect the component, but the sub-VDOM under it as well.
+Any VDOM component can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given component. As components act as boundaries in the Powercycle traversal, a scope will not just affect the component, but the complete sub-VDOM under it as well.
 
 ```jsx
 function ShowState(sources) {
@@ -347,6 +347,19 @@ And of course it can be a full scope object:
   // will show "{\"baz\":5}"
 ```
 
+#### Automatic view scoping
+
+By default, every component in Powercycle is scoped on the view channel. If you need to lift this rule occasionally, you can provide a `noscope` prop the component. The reason for this rule to make string VDOM selectors safe by default. String VDOM selectors are useful, because they eliminate the necessity of boilerplate Symbol declarations. Take a look at this inline component, which is inside a `Collection` item:
+
+```jsx
+  {src => [
+    <button sel='remove'>Remove</button>,
+    { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
+  ]}
+```
+
+[See the Todo example](https://codesandbox.io/s/2wv3r9ojqp)
+
 ### React realms
 
 React components can be included in the VDOM by wrapping them in the ReactRealm component. To use the state from the Cycle.js environment, Powercycle offers the `useCycleState` hook. You can put any content inside the opening and closing `<ReactRealm>` tags, they won't be traversed by Powercycle. That part of the VDOM will go directly into the React engine:
@@ -358,10 +371,10 @@ function ReactCounter(props) {
   const [count, setCount] = useCycleState(props.sources)
 
   return (
-    <>
+    <div>
       <div>Counter: {count}</div>
       <button onClick={() => setCount(count + 1)}>Increment</button>
-    </>
+    </div>
   )
 }
 
@@ -373,13 +386,13 @@ function main(sources) {
   }))
 
   return [
-    <>
+    <div>
       <ReactRealm scope='counter'>
         We're under a React realm!
         <ReactCounter />
       </ReactRealm>
       <pre>{state$.map(JSON.stringify)}</pre>
-    </>,
+    </div>,
     { state: reducer$ }
   ]
 }
@@ -387,7 +400,20 @@ function main(sources) {
 
 ### Collection
 
-Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags.
+Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags. The Collection package also has a const for item removal reducer:
+
+```jsx
+<Collection>
+  <pre>
+    <Combobox />
+
+    {src => [
+      <button sel='remove'>Remove</button>,
+      { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
+    ]}
+  </pre>
+</Collection>
+```
 
 [See the Todo app for an example](https://codesandbox.io/s/2wv3r9ojqp)
 
@@ -412,7 +438,7 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
 
   If the sources object is omitted, then the `map` function returns with an inline component, which has the content of `sources.state.strea`, mapped over `mapperFn`, so it's a shortcut for `{ sources => <>{map(mapperFn, sources)}</> }`:
 
-```jsx
+  ```jsx
   function ShowState(sources) {
     return (
       <Code>{map(JSON.stringify)}</Code>
@@ -420,8 +446,74 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
     )
   }
   ```
+  
+  Note, that in props, you can only use it with the sources object, as inline components are not applicable as props:
 
 * `get`
+
+  The `get` function works exactly like `map` regarding its signature. The only difference is that it uses a Lodash getter as the mapperFn. It's a convenient shortcut for getting a chunk of the state:
+  
+  ```jsx
+  function ShowColor(sources) {
+    const reducer$ = xs.of(() => ({
+      color: 'red'
+    }))
+
+    return (
+      <pre style={{ background: get('color', sources) }}>It's {get('color')}</pre>
+    )
+  }
+  ```
+  
+  When the `get` function is called with no or empty parameter, it returns with the state object itself:
+
+  ```jsx
+  function ShowColor(sources) {
+    const reducer$ = xs.of(() => ({
+      color: 'red'
+    }))
+
+    return (
+      <Scope scope='color'>
+        <pre style={{ background: get('', sources) }}>It's {get()}</Code>
+      </Scope>
+    )
+  }
+  ```
+
 * *View selection shortcuts*
-* *How to opt-out from the Powercycle control
-  Just return with a regular sinks object, and the underlaying components will not be controlled by Powercycle.
+
+  View selection has a convenience shortcut. Instead of writing
+
+  `sources.react.select('input').events('change').map(ev => ev.target.value)`
+  
+  You can write just:
+
+  `sources.sel.input.change['target.value']
+  
+  Example:
+
+  ```jsx
+  <Collection>
+    <pre>
+      <Combobox />
+
+      {src => [
+        <button sel='remove' style={{ float: 'right' }}>Remove</button>,
+        { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
+      ]}
+
+      <br />
+
+      {src =>
+        <div style={{ color: get('color', src) }}>
+          <ShowState />
+        </div>
+      }
+    </pre>
+  </Collection>
+  ```
+
+* *How to opt-out from the Powercycle control*
+
+  You can opt-out from Powercycle at any place in the VDOM by just returning a regular sinks object. The underlying components will not be controlled by Powercycle.
