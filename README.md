@@ -258,7 +258,7 @@ Powercycle collects streams and components from the VDOM according to the follow
   function main (sources) {
     // ...
     return (
-      <div style={{ background: color$ }}>...</div>
+      <div style={ { background: color$ } }>...</div>
     )
   }
   ```
@@ -460,7 +460,7 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
     }))
 
     return (
-      <pre style={{ background: get('color', sources) }}>It's {get('color')}</pre>
+      <pre style={ { background: get('color', sources) } }>It's {get('color')}</pre>
     )
   }
   ```
@@ -475,7 +475,7 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
 
     return (
       <Scope scope='color'>
-        <pre style={{ background: get('', sources) }}>It's {get()}</Code>
+        <pre style={ { background: get('', sources) } }>It's {get()}</Code>
       </Scope>
     )
   }
@@ -499,14 +499,14 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
       <Combobox />
 
       {src => [
-        <button sel='remove' style={{ float: 'right' }}>Remove</button>,
+        <button sel='remove' style={ { float: 'right' } }>Remove</button>,
         { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
       ]}
 
       <br />
 
       {src =>
-        <div style={{ color: get('color', src) }}>
+        <div style={ { color: get('color', src) } }>
           <ShowState />
         </div>
       }
