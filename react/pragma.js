@@ -8,6 +8,11 @@ export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
 export const VDOM_ELEMENT_KEY_PROP = Symbol('powercycle.key')
 export const VDOM_INLINE_CMP = Symbol('powercycle.inline-cmp')
 
+// Currently unused, but the purpose is to get runtime information about the
+// Object.freeze usage on React elements.
+export const CYCLE_REACT_ELEMENTS_WRITABLE =
+  Object.getOwnPropertyDescriptor(h('div'), 'type').writable
+
 export function pragma(node, attr, ...children) {
   const key = attr && attr.key
 
