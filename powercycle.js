@@ -123,15 +123,16 @@ const resolveShorthandOutput = cmp => sources => {
 // Support dot-separated deep lenses - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
-const getLens = path => path && (
-  path.split('.').length < 2 ? path : {
-    state: {
-      get: state => _get(state, path),
-      set: (state, childState) => set(state, path, childState)
-    },
-    '*': path
-  }
-)
+const getLens = lens =>
+  typeof lens !== 'string'
+    ? lens
+    : lens.split('.').length < 2 ? lens : {
+      state: {
+        get: state => _get(state, lens),
+        set: (state, childState) => set(state, lens, childState)
+      },
+      '*': lens
+    }
 
 const traverse = (action, obj, path = [], acc = []) => {
   let [_acc, stop] = action(acc, obj, path)
@@ -276,6 +277,8 @@ const makePowercycle = config => (vdom, eventSinks, sources) => {
 }
 
 export const powercycle = makePowercycle(CONFIG)
+export const power = powercycle
+export const component = powercycle
 
 // Wrapper for any cycle component for the convenience of shorthand
 // return values. An initial powercycle() call makes the component 'controlled',
