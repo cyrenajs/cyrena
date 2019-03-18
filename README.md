@@ -63,7 +63,9 @@ Install the usual Cycle/react dependencies:
 
 ### Getting Started
 
-Besides following the [Installation](#installation) steps, make sure that your setup can handle JSX, because Powercycle was made with JSX in mind. Powercycle has its own JSX pragma, so you have to specify the pragma in your setup. One way of doing it is importing the default export from the powercycle package:
+#### JSX
+
+Besides following the [Installation](#installation) steps, make sure that your setup can handle JSX, because Powercycle was made with JSX in mind. Powercycle has its own JSX pragma:
 
 ```jsx
 import withPower from 'powercycle'
@@ -72,8 +74,6 @@ import withPower from 'powercycle'
 ```
 
 Obviously you can skip using JSX, if you really wish, but you'll still need the pragma.
-
-Now that we're done with the setup, we're ready to start using the extension.
 
 ### Static VDOM composition
 
@@ -491,7 +491,7 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
   
   You can write just:
 
-  `sources.sel.input.change['target.value']
+  `sources.sel.input.change['target.value']`
   
   Example:
 
