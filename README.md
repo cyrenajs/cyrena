@@ -283,7 +283,6 @@ Powercycle collects streams and components from the VDOM according to the follow
   ```
 
 4. When it finds a _function as a VDOM child_, it's interpreted as an _inline component_. Powercycle will invoke the component with the sources object and collects its sinks, just like as it were a component element:
-
   ```jsx
   function main (sources) {
     return (
