@@ -244,6 +244,7 @@ With the `withPower` function, you don't ever need to use the powercycle functio
 Powercycle collects streams and components from the VDOM according to the following rules:
 
 1. When it finds a stream as a _VDOM child_, it collects the stream:
+
 ```jsx
 function main (sources) {
   // ...
@@ -254,6 +255,7 @@ function main (sources) {
 ```
 
 2. When it finds a stream in a prop of a _plain DOM (e.g. a 'div') element_, it collects the stream:
+
 ```jsx
 function main (sources) {
   // ...
@@ -264,6 +266,7 @@ function main (sources) {
 ```
 
 3. When it finds a _component (e.g. Panel) element_, it invokes it with the sources objects, and collects its sinks. It doesn't continue the traversal under the component element. It passes the props object as `sources.props`. The inner component can access the children as `sources.props.children`:
+
 ```jsx
 function Panel (sources) {
   return (
@@ -283,6 +286,7 @@ function main (sources) {
 ```
 
 4. When it finds a _function as a VDOM child_, it's interpreted as an _inline component_. Powercycle will invoke the component with the sources object and collects its sinks, just like as it were a component element:
+
 ```jsx
 function main (sources) {
   return (
