@@ -338,7 +338,7 @@ And of course it can be a full scope object:
 
 ```jsx
   return [
-    <ShowState scope={{ state: {
+    <ShowState scope={% raw %}{{{% endraw %} state: {
       get: state => JSON.stringify(state.foo.bar),
       set: (state, childState) => ({ ...state, foo: JSON.parse(childState)})
     } }} />
