@@ -243,7 +243,7 @@ With the `withPower` function, you don't ever need to use the powercycle functio
 
 Powercycle collects streams and components from the VDOM according to the following rules:
 
-1. When it finds a stream as a VDOM child, it collects the stream:
+1. When it finds a stream as a _VDOM child_, it collects the stream:
   ```jsx
   function main (sources) {
     // ...
@@ -253,7 +253,7 @@ Powercycle collects streams and components from the VDOM according to the follow
   }
   ```
 
-1. When it finds a stream in a prop of a plain DOM (e.g. a 'div') element, it collects the stream:
+2. When it finds a stream in a prop of a _plain DOM (e.g. a 'div') element_, it collects the stream:
   ```jsx
   function main (sources) {
     // ...
@@ -263,7 +263,7 @@ Powercycle collects streams and components from the VDOM according to the follow
   }
   ```
 
-1. When it finds a component (e.g. _Panel_) element, it invokes it with the sources objects, and collects its sinks. It doesn't continue the traversal under the component element, but it also passes the props object as `sources.props`. The inner component can access the children as `sources.props.children`:
+3. When it finds a _component (e.g. Panel) element_, it invokes it with the sources objects, and collects its sinks. It doesn't continue the traversal under the component element. It passes the props object as `sources.props`. The inner component can access the children as `sources.props.children`:
   ```jsx
   function Panel (sources) {
     return (
@@ -282,7 +282,7 @@ Powercycle collects streams and components from the VDOM according to the follow
   }
   ```
 
-1. When it finds a function as a VDOM child, it's interpreted as an _inline component_. Powercycle will invoke the component with the sources object and collects its sinks, just like as it were a component element:
+4. When it finds a _function as a VDOM child_, it's interpreted as an _inline component_. Powercycle will invoke the component with the sources object and collects its sinks, just like as it were a component element:
 
   ```jsx
   function main (sources) {
@@ -387,15 +387,41 @@ function main(sources) {
 
 ### Collection
 
-Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you scope down the state with a [`lens`](#lenses) prop either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags.
+Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags.
+
+[See the Todo app for an example](https://codesandbox.io/s/2wv3r9ojqp)
 
 ### Helpers, Shortcuts and Tips
 
-* *map*
+* `map`
   The `map` utility function is a handy helper to get the state in the VDOM. It has 2 signatures:
-  * map(mapperFn, <sources>)
-  * map(mapperFn)
-* *get*
+  * `map(mapperFn, <sources>)`
+  
+  If the sources object is provided as the second parameter, the `map` function returns with a stream which maps `sources.state.stream` over the `mapperFn`, so it's a shortcut for `<sources>.state.stream.map(mapperFn)`:
+  
+  ```jsx
+  function ShowState(sources) {
+    return (
+      <Code>{map(JSON.stringify, sources)}</Code>
+      {/* <Code>{sources.state.stream.map(JSON.stringify)}</Code> */}
+    )
+  }
+  ```
+    
+  * `map(mapperFn)`
+
+  If the sources object is omitted, then the `map` function returns with an inline component, which has the content of `sources.state.strea`, mapped over `mapperFn`, so it's a shortcut for `{ sources => <>{map(mapperFn, sources)}</> }`:
+
+```jsx
+  function ShowState(sources) {
+    return (
+      <Code>{map(JSON.stringify)}</Code>
+      {/* <Code>{sources => <>{map(JSON.stringify, sources)}</>}</Code> */}
+    )
+  }
+  ```
+
+* `get`
 * *View selection shortcuts*
 * *How to opt-out from the Powercycle control
   Just return with a regular sinks object, and the underlaying components will not be controlled by Powercycle.
