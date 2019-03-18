@@ -61,9 +61,9 @@ const isMostProbablyStream = val =>
 const isInlineComponent = (val, path) =>
   val && val[VDOM_INLINE_CMP]
 
-export const isolate = (Cmp, lens) => sources =>
+export const isolate = (Cmp, scope) => sources =>
   powercycle(
-    pragma(cycleIsolate(Cmp, lens), null, ...castArray(sources.props.children)),
+    pragma(cycleIsolate(Cmp, scope), null, ...castArray(sources.props.children)),
     null,
     sources
   )
@@ -123,15 +123,15 @@ const resolveShorthandOutput = cmp => sources => {
 // Support dot-separated deep lenses - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
-const getLens = lens =>
-  typeof lens !== 'string'
-    ? lens
-    : lens.split('.').length < 2 ? lens : {
+const getScope = scope =>
+  typeof scope !== 'string'
+    ? scope
+    : scope.split('.').length < 2 ? scope : {
       state: {
-        get: state => _get(state, lens),
-        set: (state, childState) => set(state, lens, childState)
+        get: state => _get(state, scope),
+        set: (state, childState) => set(state, scope, childState)
       },
-      '*': lens
+      '*': scope
     }
 
 const traverse = (action, obj, path = [], acc = []) => {
@@ -152,15 +152,15 @@ const makeTraverseAction = config => (acc, val, path) => {
   const isInlineCmp = isInlineComponent(val, path)
 
   if (isStream || isCmp || isInlineCmp) {
-    const lens = isCmp && getLens(val.props.lens)
+    const scope = isCmp && getScope(val.props.scope || val.props.lens)
 
     const regularCmp =
       isCmp && resolveShorthandOutput(val.type) ||
       isInlineCmp && resolveShorthandOutput(val)
 
     const cmp = (isCmp || isInlineCmp) && (
-      lens
-        ? isolate(regularCmp, lens)
+      scope
+        ? isolate(regularCmp, scope)
         // Automatically isolate component vdoms unless 'noscope' is specified
         : _get(val, 'props.noscope')
           ? regularCmp
@@ -174,7 +174,7 @@ const makeTraverseAction = config => (acc, val, path) => {
     const sources = (isCmp || isInlineCmp) && {
       ...config.sources,
       // Merge outer props onto inner. Normally the outer one (val.props)
-      // should be sufficient, but lens wrapping makes it lost, and so we
+      // should be sufficient, but isolation wrapping makes it lost, and so we
       // have to dig it out from args
       props: {
         ...config.sources.props,
@@ -236,7 +236,7 @@ const makePowercycle = config => (vdom, eventSinks, sources) => {
       zip(signalValues, streamInfoRecords).forEach(([val, info]) => {
         if (isElement(val) && !val.key) {
           // info.path.join('.') would be nice, but produces "0" keys on sibling
-          // lens-ed components. uniqueId is not a good idea, it causes focus
+          // isolated components. uniqueId is not a good idea, it causes focus
           // loss. Object instance seems to work nicely. We could make a unique
           // string from it with a WeakMap, or do a better job digging out the
           // parent path and appending our path to it; but for now, it just works.
