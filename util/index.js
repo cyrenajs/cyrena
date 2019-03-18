@@ -21,7 +21,7 @@ export function Scope (sources) {
 export const map = (fn, src) =>
   src
     ? src.state.stream.map(fn)
-    : src => pragma(Fragment, null, src.state.stream.map(fn))
+    : src => pragma(Fragment, null, map(fn, src))
 
 export const get = (key, src) =>
   map(state => _get(state, key, state), src)
