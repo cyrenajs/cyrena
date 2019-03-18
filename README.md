@@ -245,26 +245,25 @@ Powercycle collects streams and components from the VDOM according to the follow
 
 1. When it finds a stream as a _VDOM child_, it collects the stream:
   ```jsx
-    function main (sources) {
-      // ...
-      return (
-        <div>{state$}</div>
-      )
-    }
+   function main (sources) {
+     // ...
+     return (
+       <div>{state$}</div>
+     )
+   }
   ```
 
 2. When it finds a stream in a prop of a _plain DOM (e.g. a 'div') element_, it collects the stream:
   ```jsx
-    function main (sources) {
-      // ...
-      return (
-        <div style={ { background: color$ } }>...</div>
-      )
-    }
+   function main (sources) {
+     // ...
+     return (
+       <div style={ { background: color$ } }>...</div>
+     )
+   }
   ```
 
 3. When it finds a _component (e.g. Panel) element_, it invokes it with the sources objects, and collects its sinks. It doesn't continue the traversal under the component element. It passes the props object as `sources.props`. The inner component can access the children as `sources.props.children`:
-
   ```jsx
     function Panel (sources) {
       return (
