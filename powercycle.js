@@ -120,7 +120,7 @@ const resolveShorthandOutput = cmp => sources => {
     : output[0]
 }
 
-// Support dot-separated deep lenses - not sure how much of a real world usecase
+// Support dot-separated deep scopes - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
 const getScope = scope =>
@@ -152,7 +152,7 @@ const makeTraverseAction = config => (acc, val, path) => {
   const isInlineCmp = isInlineComponent(val, path)
 
   if (isStream || isCmp || isInlineCmp) {
-    const scope = isCmp && getScope(val.props.scope || val.props.lens)
+    const scope = isCmp && getScope(val.props.scope)
 
     const regularCmp =
       isCmp && resolveShorthandOutput(val.type) ||
