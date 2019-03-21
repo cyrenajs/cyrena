@@ -63,7 +63,9 @@ Install the usual Cycle/react dependencies:
 
 ### Getting Started
 
-Besides following the [Installation](#installation) steps, make sure that your setup can handle JSX, because Powercycle was made with JSX in mind. Powercycle has its own JSX pragma, so you have to specify the pragma in your setup. One way of doing it is importing the default export from the powercycle package:
+#### JSX
+
+Besides following the [Installation](#installation) steps, make sure that your setup can handle JSX, because Powercycle was made with JSX in mind. Powercycle has its own JSX pragma:
 
 ```jsx
 import withPower from 'powercycle'
@@ -72,8 +74,6 @@ import withPower from 'powercycle'
 ```
 
 Obviously you can skip using JSX, if you really wish, but you'll still need the pragma.
-
-Now that we're done with the setup, we're ready to start using the extension.
 
 ### Static VDOM composition
 
@@ -244,65 +244,67 @@ With the `withPower` function, you don't ever need to use the powercycle functio
 Powercycle collects streams and components from the VDOM according to the following rules:
 
 1. When it finds a stream as a _VDOM child_, it collects the stream:
-  ```jsx
-  function main (sources) {
-    // ...
-    return (
-      <div>{state$}</div>
-    )
-  }
-  ```
+
+    ```jsx
+    function main (sources) {
+      // ...
+      return (
+        <div>{state$}</div>
+      )
+    }
+    ```
 
 2. When it finds a stream in a prop of a _plain DOM (e.g. a 'div') element_, it collects the stream:
-  ```jsx
-  function main (sources) {
-    // ...
-    return (
-      <div style={{ background: color$ }}>...</div>
-    )
-  }
-  ```
+
+    ```jsx
+    function main (sources) {
+      // ...
+      return (
+        <div style={ { background: color$ } }>...</div>
+      )
+    }
+    ```
 
 3. When it finds a _component (e.g. Panel) element_, it invokes it with the sources objects, and collects its sinks. It doesn't continue the traversal under the component element. It passes the props object as `sources.props`. The inner component can access the children as `sources.props.children`:
-  ```jsx
-  function Panel (sources) {
-    return (
-      <>
-        <h1>{sources.props.title}</h1>
-        {sources.props.children}
-      </>
-  }
 
-  function main (sources) {
-    return (
-      <div>
-        <Panel title="My Panel">...</Panel>
-      </div>
-    )
-  }
-  ```
+    ```jsx
+    function Panel (sources) {
+      return (
+        <>
+          <h1>{sources.props.title}</h1>
+          {sources.props.children}
+        </>
+    }
+
+    function main (sources) {
+      return (
+        <div>
+          <Panel title="My Panel">...</Panel>
+        </div>
+      )
+    }
+    ```
 
 4. When it finds a _function as a VDOM child_, it's interpreted as an _inline component_. Powercycle will invoke the component with the sources object and collects its sinks, just like as it were a component element:
 
-  ```jsx
-  function main (sources) {
-    return (
-      <div>
-        {sources => {
-          return [
-            <div>...</div>,
-            { state: ... }
-          ]
-        }}
-      </div>
-    )
-  }
-  ```
-
+    ```jsx
+    function main (sources) {
+      return (
+        <div>
+          {sources => {
+            return [
+              <div>...</div>,
+              { state: ... }
+            ]
+          }}
+        </div>
+      )
+    }
+    ```
 
 ### Scopes
 
-Any VDOM component can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given component. As components act as boundaries in the Powercycle traversals, a scope will not just affect the component, but the sub-VDOM under it as well.
+Any VDOM component can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given component. As components act as boundaries in the Powercycle traversal, a scope will not just affect the component, but the complete sub-VDOM under it as well.
 
 ```jsx
 function ShowState(sources) {
@@ -338,7 +340,7 @@ And of course it can be a full scope object:
 
 ```jsx
   return [
-    <ShowState scope={{ state: {
+    <ShowState scope={ { state: {
       get: state => JSON.stringify(state.foo.bar),
       set: (state, childState) => ({ ...state, foo: JSON.parse(childState)})
     } }} />
@@ -346,6 +348,19 @@ And of course it can be a full scope object:
   ]
   // will show "{\"baz\":5}"
 ```
+
+#### Automatic view scoping
+
+By default, every component in Powercycle is scoped on the view channel. If you need to lift this rule occasionally, you can provide a `noscope` prop the component. The reason for this rule to make string VDOM selectors safe by default. String VDOM selectors are useful, because they eliminate the necessity of boilerplate Symbol declarations. Take a look at this inline component, which is inside a `Collection` item:
+
+```jsx
+  {src => [
+    <button sel='remove'>Remove</button>,
+    { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
+  ]}
+```
+
+[See the Todo example](https://codesandbox.io/s/2wv3r9ojqp)
 
 ### React realms
 
@@ -358,10 +373,10 @@ function ReactCounter(props) {
   const [count, setCount] = useCycleState(props.sources)
 
   return (
-    <>
+    <div>
       <div>Counter: {count}</div>
       <button onClick={() => setCount(count + 1)}>Increment</button>
-    </>
+    </div>
   )
 }
 
@@ -373,13 +388,13 @@ function main(sources) {
   }))
 
   return [
-    <>
+    <div>
       <ReactRealm scope='counter'>
         We're under a React realm!
         <ReactCounter />
       </ReactRealm>
       <pre>{state$.map(JSON.stringify)}</pre>
-    </>,
+    </div>,
     { state: reducer$ }
   ]
 }
@@ -387,7 +402,20 @@ function main(sources) {
 
 ### Collection
 
-Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags.
+Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags. The Collection package also has a const for item removal reducer:
+
+```jsx
+<Collection>
+  <pre>
+    <Combobox />
+
+    {src => [
+      <button sel='remove'>Remove</button>,
+      { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
+    ]}
+  </pre>
+</Collection>
+```
 
 [See the Todo app for an example](https://codesandbox.io/s/2wv3r9ojqp)
 
@@ -412,7 +440,7 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
 
   If the sources object is omitted, then the `map` function returns with an inline component, which has the content of `sources.state.strea`, mapped over `mapperFn`, so it's a shortcut for `{ sources => <>{map(mapperFn, sources)}</> }`:
 
-```jsx
+  ```jsx
   function ShowState(sources) {
     return (
       <Code>{map(JSON.stringify)}</Code>
@@ -420,8 +448,74 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
     )
   }
   ```
+  
+  Note, that in props, you can only use it with the sources object, as inline components are not applicable as props:
 
 * `get`
+
+  The `get` function works exactly like `map` regarding its signature. The only difference is that it uses a Lodash getter as the mapperFn. It's a convenient shortcut for getting a chunk of the state:
+  
+  ```jsx
+  function ShowColor(sources) {
+    const reducer$ = xs.of(() => ({
+      color: 'red'
+    }))
+
+    return (
+      <pre style={ { background: get('color', sources) } }>It's {get('color')}</pre>
+    )
+  }
+  ```
+  
+  When the `get` function is called with no or empty parameter, it returns with the state object itself:
+
+  ```jsx
+  function ShowColor(sources) {
+    const reducer$ = xs.of(() => ({
+      color: 'red'
+    }))
+
+    return (
+      <Scope scope='color'>
+        <pre style={ { background: get('', sources) } }>It's {get()}</Code>
+      </Scope>
+    )
+  }
+  ```
+
 * *View selection shortcuts*
-* *How to opt-out from the Powercycle control
-  Just return with a regular sinks object, and the underlaying components will not be controlled by Powercycle.
+
+  View selection has a convenience shortcut. Instead of writing
+
+  `sources.react.select('input').events('change').map(ev => ev.target.value)`
+  
+  You can write just:
+
+  `sources.sel.input.change['target.value']`
+  
+  Example:
+
+  ```jsx
+  <Collection>
+    <pre>
+      <Combobox />
+
+      {src => [
+        <button sel='remove' style={ { float: 'right' } }>Remove</button>,
+        { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
+      ]}
+
+      <br />
+
+      {src =>
+        <div style={ { color: get('color', src) } }>
+          <ShowState />
+        </div>
+      }
+    </pre>
+  </Collection>
+  ```
+
+* *How to opt-out from the Powercycle control*
+
+  You can opt-out from Powercycle at any place in the VDOM by just returning a regular sinks object. The underlying components will not be controlled by Powercycle.
