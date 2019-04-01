@@ -129,7 +129,7 @@ const getScope = scope =>
     : scope.split('.').length < 2 ? scope : {
       state: {
         get: state => _get(state, scope),
-        set: (state, childState) => set(state, scope, childState)
+        set: (state, childState) => clone(set(state, scope, childState))
       },
       '*': scope
     }
