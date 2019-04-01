@@ -19,7 +19,7 @@ import last from 'lodash/last'
 import uniqueId from 'lodash/uniqueId'
 
 import xs from 'xstream'
-import cycleIsolate from '@cycle/isolate'
+import isolate from '@cycle/isolate'
 
 import {
   pragma,
@@ -31,7 +31,9 @@ import {
 
 export { pragma, Fragment } from './react/pragma'
 
-const CONFIG = {
+import { powerUpSources, depowerSources } from './util/powerSources'
+
+export const CONFIG = {
   vdomProp: 'react',
   combineFn: streams => xs.combine(...streams),
   mergeFn: streams => xs.merge(...streams)
@@ -61,45 +63,12 @@ const isMostProbablyStream = val =>
 const isInlineComponent = (val, path) =>
   val && val[VDOM_INLINE_CMP]
 
-export const isolate = (Cmp, scope) => sources =>
+export const powerIsolate = (Cmp, scope) => sources =>
   powercycle(
-    pragma(cycleIsolate(Cmp, scope), null, ...castArray(sources.props.children)),
+    pragma(isolate(Cmp, scope), null, ...castArray(sources.props.children)),
     null,
     sources
   )
-
-// Power-ups the sources object to make all these shorthands available:
-// sources.react.select('input').events('change').map(ev => ev.target.value)
-// sources.sel.input.events('change').map(ev => ev.target.value)
-// sources.sel.input.change.map(ev => ev.target.value)
-// sources.sel.input.change['target.value']
-const eventsProxy = (target, prop) => {
-  const selector = typeof prop === 'symbol' && Symbol.keyFor(prop) || prop
-  return new Proxy(target.react.select(selector), {
-    get: (target, prop) => target[prop] ||
-      new Proxy(target.events(prop), {
-        get: (target, prop) => target[prop] ||
-          target.map(ev => _get(ev, prop))
-      })
-  })
-}
-
-export const sel = name => Symbol.for(name)
-
-export function powerUpSources (sources) {
-  return new Proxy({ ...sources }, {
-    get: (target, prop) =>
-      prop === 'sel' && !target[prop]
-        ? new Proxy({}, {
-            get: (dummy, prop) => eventsProxy(target, prop)
-          })
-        : typeof prop === 'symbol'
-          ? eventsProxy(target, prop)
-          : target[prop]
-  })
-}
-
-const depowerSources = clone
 
 // Allow shortcut return value, like: return <div>...</div>
 // or with sinks: return [<div>...</div>, { state: ... }]
@@ -123,7 +92,7 @@ const resolveShorthandOutput = cmp => sources => {
 // Support dot-separated deep scopes - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
-const getScope = scope =>
+export const resolveDotSeparatedScope = scope =>
   typeof scope !== 'string'
     ? scope
     : scope.split('.').length < 2 ? scope : {
@@ -152,7 +121,7 @@ const makeTraverseAction = config => (acc, val, path) => {
   const isInlineCmp = isInlineComponent(val, path)
 
   if (isStream || isCmp || isInlineCmp) {
-    const scope = isCmp && getScope(val.props.scope)
+    const scope = isCmp && resolveDotSeparatedScope(val.props.scope)
 
     const regularCmp =
       isCmp && resolveShorthandOutput(val.type) ||
@@ -160,11 +129,11 @@ const makeTraverseAction = config => (acc, val, path) => {
 
     const cmp = (isCmp || isInlineCmp) && (
       scope
-        ? isolate(regularCmp, scope)
+        ? powerIsolate(regularCmp, scope)
         // Automatically isolate component vdoms unless 'noscope' is specified
         : _get(val, 'props.noscope')
           ? regularCmp
-          : cycleIsolate(regularCmp, {
+          : isolate(regularCmp, {
             [config.vdomProp]: path.join('.'),
             '*': null
           })

@@ -80,7 +80,7 @@ Obviously you can skip using JSX, if you really wish, but you'll still need the 
 We've seen the default import above named `withPower`, but let's forget that for now. Powercycle's core utility is the `powercycle` function, which takes 3 arguments, and returns a regular Cycle.js _sinks_ object. (Don't pick on the name `powercycle`; at the end of the day, you won't even need to use this function.)
 
 1. The first argument is a static VDOM, which can contain streams and other components (even inline components! We'll see them later).
-1. The second argument is the sinks object, which contains all of the sinks for the current component, _except the view_. 
+1. The second argument is the sinks object, which contains all of the sinks for the current component, _except the view_.
 1. The third argument is the sources object which Powercycle will pass to the components during the VDOM traversal.
 
 Let's see a basic example of an atomic component:
@@ -89,7 +89,7 @@ Let's see a basic example of an atomic component:
 // Regular Cycle.js component
 function Cmp(sources) {
   const state$ = sources.state.stream
-  
+
   return {
     react: state$.map(state => <div>{state}</div>)
   }
@@ -115,9 +115,9 @@ At the moment it doesn't seem to be much useful, but what happens when you want 
 ```jsx
 function Cmp(sources) {
   const state$ = sources.state.stream
-  
+
   const panelSinks = Panel({ ...sources, props: { title: 'State' }})
-  
+
   return {
     react: panelSinks.react.map(panelVdom =>
       <div>
@@ -402,18 +402,47 @@ function main(sources) {
 
 ### Collection
 
-Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to the `Collection` component. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags. The Collection package also has a const for item removal reducer:
+Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to `Collection`. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags. The Collection package also has a const for item removal reducer:
 
 ```jsx
 <Collection>
-  <pre>
-    <Combobox />
+  <Combobox />
 
-    {src => [
-      <button sel='remove'>Remove</button>,
-      { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
-    ]}
-  </pre>
+  {src => [
+    <button sel='remove'>Remove</button>,
+    { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
+  ]}
+</Collection>
+```
+
+#### Reaching out to the outer state from the items
+
+There are cases when you need to interact with the outer state from the items. For example, you need to duplicate an item, or set some state somewhere else, based upon the current item's state. For these cases, `Collection` automatically provides an extra stream in the items' sources object: `outerState` (the name can be specified with `outerstate` prop). Items can also leave reducers in their `outerState` sink. In order to interact with not just the collection array itself, even outer states, use the `for` prop on the `Collection`. The `for` prop works exactly like `scope` in specifying the collection's array, but it doesn't scope down the component, so outerState can see beyond the list.
+
+```jsx
+/*
+  {
+    globalColor: "blue",
+    foobar: {
+      list: [{ color: "white", id: {} }, { color: "blue", id: {} }]
+    }
+  }
+*/
+
+<Collection for='foobar.list'>
+  Set color: <Combobox />
+
+  {src => [
+    <button sel='set'>Set as global</button>,
+    {
+      outerState: src.sel.set.click
+        .compose(sampleCombine(src.state.stream))
+        .map(([click, state]) => outerState => ({
+          ...outerState,
+          globalColor: state.color
+        }))
+    }
+  ]}
 </Collection>
 ```
 
@@ -424,9 +453,9 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
 * `map`
   The `map` utility function is a handy helper to get the state in the VDOM. It has 2 signatures:
   * `map(mapperFn, <sources>)`
-  
+
   If the sources object is provided as the second parameter, the `map` function returns with a stream which maps `sources.state.stream` over the `mapperFn`, so it's a shortcut for `<sources>.state.stream.map(mapperFn)`:
-  
+
   ```jsx
   function ShowState(sources) {
     return (
@@ -435,10 +464,10 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
     )
   }
   ```
-    
+
   * `map(mapperFn)`
 
-  If the sources object is omitted, then the `map` function returns with an inline component, which has the content of `sources.state.strea`, mapped over `mapperFn`, so it's a shortcut for `{ sources => <>{map(mapperFn, sources)}</> }`:
+  If the sources object is omitted, then the `map` function returns with an inline component, which has the content of `sources.state.stream`, mapped over `mapperFn`, so it's a shortcut for `{ sources => <>{map(mapperFn, sources)}</> }`:
 
   ```jsx
   function ShowState(sources) {
@@ -448,13 +477,13 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
     )
   }
   ```
-  
+
   Note, that in props, you can only use it with the sources object, as inline components are not applicable as props:
 
 * `get`
 
   The `get` function works exactly like `map` regarding its signature. The only difference is that it uses a Lodash getter as the mapperFn. It's a convenient shortcut for getting a chunk of the state:
-  
+
   ```jsx
   function ShowColor(sources) {
     const reducer$ = xs.of(() => ({
@@ -466,7 +495,7 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
     )
   }
   ```
-  
+
   When the `get` function is called with no or empty parameter, it returns with the state object itself:
 
   ```jsx
@@ -488,11 +517,11 @@ Powercycle has a `Collection` component which makes handling dynamic lists easy 
   View selection has a convenience shortcut. Instead of writing
 
   `sources.react.select('input').events('change').map(ev => ev.target.value)`
-  
+
   You can write just:
 
   `sources.sel.input.change['target.value']`
-  
+
   Example:
 
   ```jsx
