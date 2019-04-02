@@ -61,9 +61,9 @@ export function Collection (sources) {
         // serves as an isolation base, but we already have isolation on the items...
         // itemKey: (childState, index) => String(index),
 
-        itemScope: sources.props.itemScope || (key => key),
-        // channel: sources.props.itemScope && 'itemState',
-        // channel: 'itemState',
+        // channel: sources.props.channel || 'state',
+
+        itemScope: sources.props.itemscope || (key => key),
 
         collectSinks: instances =>
           [clone(sources)]
@@ -118,12 +118,12 @@ export function Collection (sources) {
     )
 
     // Add outerState to sources
-    .map(list => _sources => {
+    .map(list => sources => {
       const sinks = list({
         // de-proxy proxyfied sources object
-        ...clone(_sources),
+        ...clone(sources),
         // It only works with streams, donno why
-        [outerStateName]: _sources.state.stream,
+        [outerStateName]: sources.state.stream,
       })
 
       return {
