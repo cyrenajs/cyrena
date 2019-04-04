@@ -31,7 +31,12 @@ import {
 
 export { pragma, Fragment } from './react/pragma'
 
-import { powerUpSources, depowerSources, SEL_ROOT } from './util/shortcuts'
+import {
+  resolveDotSeparatedScope,
+  powerUpSources,
+  depowerSources,
+  injectAutoSel
+} from './util/shortcuts'
 
 export const CONFIG = {
   vdomProp: 'react',
@@ -88,20 +93,6 @@ const resolveShorthandOutput = cmp => sources => {
     // it's a regular cyclejs sinks object
     : output[0]
 }
-
-// Support dot-separated deep scopes - not sure how much of a real world usecase
-// We choose a careful strategy here, ie. if there's no dot, we stay with the
-// string version
-export const resolveDotSeparatedScope = scope =>
-  typeof scope !== 'string'
-    ? scope
-    : scope.split('.').length < 2 ? scope : {
-      state: {
-        get: state => _get(state, scope),
-        set: (state, childState) => clone(set(state, scope, childState))
-      },
-      '*': scope
-    }
 
 const traverse = (action, obj, path = [], acc = []) => {
   let [_acc, stop] = action(acc, obj, path)

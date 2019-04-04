@@ -7,6 +7,21 @@ import {
   Fragment
 } from '../react/pragma'
 
+// Support dot-separated deep scopes - not sure how much of a real world usecase
+// We choose a careful strategy here, ie. if there's no dot, we stay with the
+// string version
+export function resolveDotSeparatedScope(scope) {
+  return typeof scope !== 'string'
+    ? scope
+    : scope.split('.').length < 2 ? scope : {
+      state: {
+        get: state => _get(state, scope),
+        set: (state, childState) => clone(set(state, scope, childState))
+      },
+      '*': scope
+    }
+}
+
 const SEL_ROOT = Symbol('ROOT')
 
 // Power-ups the sources object to make all these shorthands available:

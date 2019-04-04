@@ -5,7 +5,8 @@ import mapValues from 'lodash/mapValues'
 
 import { pragma, Fragment } from '../react/pragma'
 import { makeCollection } from '@cycle/state'
-import { powercycle, resolveDotSeparatedScope, CONFIG } from '../powercycle'
+import { powercycle, CONFIG } from '../powercycle'
+import { resolveDotSeparatedScope } from './shortcuts'
 import isolate from '@cycle/isolate'
 import { get } from './index'
 
