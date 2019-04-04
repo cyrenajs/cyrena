@@ -1,5 +1,6 @@
 import clone from 'lodash/clone'
 import _get from 'lodash/get'
+import set from 'lodash/set'
 import omit from 'lodash/omit'
 
 import {
