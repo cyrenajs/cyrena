@@ -31,7 +31,7 @@ import {
 
 export { pragma, Fragment } from './react/pragma'
 
-import { powerUpSources, depowerSources, SEL_ROOT } from './util/powerSources'
+import { powerUpSources, depowerSources, SEL_ROOT } from './util/shortcuts'
 
 export const CONFIG = {
   vdomProp: 'react',
