@@ -1,7 +1,13 @@
 import clone from 'lodash/clone'
 import _get from 'lodash/get'
+import omit from 'lodash/omit'
 
-export const SEL_ROOT = Symbol('ROOT')
+import {
+  pragma,
+  Fragment
+} from '../react/pragma'
+
+const SEL_ROOT = Symbol('ROOT')
 
 // Power-ups the sources object to make all these shorthands available:
 // sources.react.select('input').events('change').map(ev => ev.target.value)
@@ -22,8 +28,6 @@ const eventsProxy = (target, prop) => {
   })
 }
 
-export const sel = name => Symbol.for(name)
-
 export function powerUpSources (sources) {
   return new Proxy(sources, {
     get: (target, prop) => {
@@ -39,3 +43,13 @@ export function powerUpSources (sources) {
 }
 
 export const depowerSources = clone
+
+export function injectAutoSel(vdom) {
+  return typeof vdom.type !== 'string' || vdom.props.sel
+    ? vdom
+    : pragma(
+        vdom.type,
+        { ...omit(vdom.props, 'key'), sel: SEL_ROOT },
+        vdom.props.children
+      )
+}

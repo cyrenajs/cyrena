@@ -176,15 +176,6 @@ const cloneDeepVdom = vdom => cloneDeepWith(vdom, value => {
   }
 })
 
-const injectAutoSel = vdom => {
-  let props = { ...omit(vdom.props, 'key') }
-
-  if (typeof vdom.type === 'string' && !vdom.props.sel) {
-    props.sel = SEL_ROOT
-  }
-  return pragma(vdom.type, props, vdom.props.children)
-}
-
 const makePowercycle = config => (vdom, eventSinks, sources) => {
   // Wrap it in an array to make path-based substitution work with root
   // streams
