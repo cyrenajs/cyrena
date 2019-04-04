@@ -1,6 +1,8 @@
 import clone from 'lodash/clone'
 import _get from 'lodash/get'
 
+export const SEL_ROOT = Symbol('ROOT')
+
 // Power-ups the sources object to make all these shorthands available:
 // sources.react.select('input').events('change').map(ev => ev.target.value)
 // sources.sel.input.events('change').map(ev => ev.target.value)
@@ -25,13 +27,13 @@ export const sel = name => Symbol.for(name)
 export function powerUpSources (sources) {
   return new Proxy(sources, {
     get: (target, prop) => {
-      return prop === 'sel' && !target[prop]
-        ? new Proxy({}, {
-            get: (dummy, prop) => eventsProxy(target, prop)
-          })
-        : typeof prop === 'symbol'
-          ? eventsProxy(target, prop)
-          : target[prop]
+      return target[prop] ||
+        prop === 'el' && eventsProxy(target, SEL_ROOT) ||
+        prop === 'sel' && new Proxy({}, {
+          get: (dummy, prop) => eventsProxy(target, prop)
+        }) ||
+        typeof prop === 'symbol' && eventsProxy(target, prop) ||
+        undefined
     }
   })
 }
