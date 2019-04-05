@@ -35,7 +35,8 @@ import {
   resolveDotSeparatedScope,
   powerUpSources,
   depowerSources,
-  injectAutoSel
+  injectAutoSel,
+  transformVdomWithEventProps
 } from './util/shortcuts'
 
 export const CONFIG = {
@@ -107,55 +108,60 @@ const traverse = (action, obj, path = [], acc = []) => {
 }
 
 const makeTraverseAction = config => (acc, val, path) => {
+  // This mutates the vdom (val)
+  transformVdomWithEventProps(val, config.mergeFn)
+
   const isStream = isMostProbablyStream(val)
   const isCmp = isComponentNode(val)
   const isInlineCmp = isInlineComponent(val, path)
 
-  if (isStream || isCmp || isInlineCmp) {
-    const scope = isCmp && resolveDotSeparatedScope(val.props.scope)
-
-    const regularCmp =
-      isCmp && resolveShorthandOutput(val.type) ||
-      isInlineCmp && resolveShorthandOutput(val)
-
-    const cmp = (isCmp || isInlineCmp) && (
-      scope
-        ? powerIsolate(regularCmp, scope)
-        // Automatically isolate component vdoms unless 'noscope' is specified
-        : _get(val, 'props.noscope')
-          ? regularCmp
-          : isolate(regularCmp, {
-            [config.vdomProp]: path.join('.'),
-            '*': null
-          })
-      )
-
-    // We pass key and props in the sources object
-    const sources = (isCmp || isInlineCmp) && {
-      ...config.sources,
-      // Merge outer props onto inner. Normally the outer one (val.props)
-      // should be sufficient, but isolation wrapping makes it lost, and so we
-      // have to dig it out from args
-      props: {
-        ...config.sources.props,
-        ...val.props
-      },
-      key: val[VDOM_ELEMENT_KEY_PROP]
-    }
-
-    const sinks =
-      (isCmp || isInlineCmp) && cmp(sources)
-
-    const _path = last(path) === VDOM_ELEMENT_KEY_PROP
-      ? [...dropRight(path), 'key']
-      : path
-
-    acc.push({ val, path: _path, isCmp: isCmp || isInlineCmp, sinks })
+  if (!isStream && !isCmp && !isInlineCmp) {
+    return [acc, false]
   }
+
+  const scope = isCmp && resolveDotSeparatedScope(val.props.scope)
+
+  const regularCmp =
+    isCmp && resolveShorthandOutput(val.type) ||
+    isInlineCmp && resolveShorthandOutput(val)
+
+  const cmp = (isCmp || isInlineCmp) && (
+    scope
+      ? powerIsolate(regularCmp, scope)
+      // Automatically isolate component vdoms unless 'noscope' is specified
+      : _get(val, 'props.noscope')
+        ? regularCmp
+        : isolate(regularCmp, {
+          [config.vdomProp]: path.join('.'),
+          '*': null
+        })
+    )
+
+  // We pass key and props in the sources object
+  const sources = (isCmp || isInlineCmp) && {
+    ...config.sources,
+    // Merge outer props onto inner. Normally the outer one (val.props)
+    // should be sufficient, but isolation wrapping makes it lost, and so we
+    // have to dig it out from args
+    props: {
+      ...config.sources.props,
+      ...val.props
+    },
+    key: val[VDOM_ELEMENT_KEY_PROP]
+  }
+
+  const sinks =
+    (isCmp || isInlineCmp) && cmp(sources)
+
+  const _path = last(path) === VDOM_ELEMENT_KEY_PROP
+    ? [...dropRight(path), 'key']
+    : path
+
+  acc.push({ val, path: _path, isCmp: isCmp || isInlineCmp, sinks })
 
   // Return with the accumulator object, and a second boolean value which
   // tells if the traversal should stop at this branch
-  return [acc, isStream || isCmp || isInlineCmp]
+  return [acc, true]
 }
 
 const cloneDeepVdom = vdom => cloneDeepWith(vdom, value => {
@@ -172,10 +178,12 @@ const makePowercycle = config => (vdom, eventSinks, sources) => {
   // streams
   const root = [injectAutoSel(vdom)]
 
-  const streamInfoRecords = traverse(
-    makeTraverseAction({ ...config, sources: depowerSources(sources) }),
-    root
-  )
+  const traverseAction = makeTraverseAction({
+    ...config,
+    sources: depowerSources(sources)
+  })
+
+  const streamInfoRecords = traverse(traverseAction, root)
 
   // Get the signal streams (the ones which need to be combined)
   const signalStreams = streamInfoRecords.map(node =>
