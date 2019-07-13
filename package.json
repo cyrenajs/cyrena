@@ -28,7 +28,7 @@
   "dependencies": {
     "@cycle/isolate": "^5.0.0",
     "@cycle/state": "^1.2.0",
-    "lodash": "^4.17.11"
+    "lodash": ">=4.17.13"
   },
   "peerDependencies": {
     "@cycle/react": "^2.0.0",
