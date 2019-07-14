@@ -9,7 +9,6 @@ import forEach from 'lodash/forEach'
 import {
   pragma,
   Fragment,
-  VDOM_INLINE_CMP,
 } from '../react/pragma'
 
 // Support dot-separated deep scopes - not sure how much of a real world usecase
@@ -142,9 +141,6 @@ export function transformVdomWithEventProps(vdom, mergeFn) {
 
   vdom.type = Fragment
   vdom.props = {
-    children: Object.assign(
-      sources => getSinks(sources),
-      { [VDOM_INLINE_CMP]: true }
-    )
+    children: sources => getSinks(sources)
   }
 }

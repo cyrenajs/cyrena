@@ -26,7 +26,6 @@ import {
   Fragment,
   VDOM_ELEMENT_FLAG,
   VDOM_ELEMENT_KEY_PROP,
-  VDOM_INLINE_CMP
 } from './react/pragma'
 
 export { pragma, Fragment } from './react/pragma'
@@ -60,8 +59,15 @@ const isElement = val =>
 const isStream = val =>
   val instanceof Stream
 
-const isInlineComponent = (val, path) =>
-  val && val[VDOM_INLINE_CMP]
+const isInlineComponent = (val, path, root) => {
+  // Map to string before join to prevent errors on symbol keys (from our pragma)
+  const possibleParentElementPath =
+    path.map(String).join('.').replace(/\.props\.children(?:\.\d+)?$/, '')
+
+  return typeof val === 'function'
+    && possibleParentElementPath !== path.map(String).join('.')
+    && isElement(_get(root, possibleParentElementPath))
+}
 
 export const powerIsolate = (Cmp, scope) => sources =>
   powercycle(
@@ -89,25 +95,26 @@ const resolveShorthandOutput = cmp => sources => {
     : output[0]
 }
 
-const traverse = (action, obj, path = [], acc = []) => {
-  let [_acc, stop] = action(acc, obj, path)
+// Traverses the tree and returns with a flat list of stream records
+const traverse = (action, obj, path = [], root = null, acc = []) => {
+  let [_acc, stop] = action(acc, obj, path, root || obj)
 
   if (!stop && obj && typeof obj === 'object') {
     for (let k of [...Object.keys(obj), ...Object.getOwnPropertySymbols(obj)]) {
-      _acc = traverse(action, obj[k], [...path, k], _acc)
+      _acc = traverse(action, obj[k], [...path, k], root || obj, _acc)
     }
   }
 
   return _acc
 }
 
-const makeTraverseAction = config => (acc, val, path) => {
+const makeTraverseAction = config => (acc, val, path, root) => {
   // This mutates the vdom (val)
   transformVdomWithEventProps(val, config.mergeFn)
 
   const _isStream = isStream(val)
   const isCmp = isComponentNode(val)
-  const isInlineCmp = isInlineComponent(val, path)
+  const isInlineCmp = isInlineComponent(val, path, root)
 
   if (!_isStream && !isCmp && !isInlineCmp) {
     return [acc, false]
