@@ -31,7 +31,8 @@
     "lodash": ">=4.17.13"
   },
   "peerDependencies": {
-    "@cycle/react": "^2.2.0",
+    "@cycle/react": "^2.3.0",
+    "@cycle/react-dom": "^2.3.0",
     "react": "^16.8.3",
     "xstream": "^11.10.0"
   }
