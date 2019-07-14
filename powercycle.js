@@ -18,7 +18,7 @@ import dropRight from 'lodash/dropRight'
 import last from 'lodash/last'
 import uniqueId from 'lodash/uniqueId'
 
-import xs from 'xstream'
+import xs, { Stream } from 'xstream'
 import isolate from '@cycle/isolate'
 
 import {
@@ -57,14 +57,8 @@ const isElement = val =>
     val.$$typeof === Symbol.for('react.element')
   )
 
-const isMostProbablyStream = val =>
-  Boolean(
-    val &&
-    typeof val === 'object' &&
-    !val[VDOM_ELEMENT_FLAG] &&
-    !isPlainObject(val) &&
-    !Array.isArray(val)
-  )
+const isStream = val =>
+  val instanceof Stream
 
 const isInlineComponent = (val, path) =>
   val && val[VDOM_INLINE_CMP]
@@ -111,11 +105,11 @@ const makeTraverseAction = config => (acc, val, path) => {
   // This mutates the vdom (val)
   transformVdomWithEventProps(val, config.mergeFn)
 
-  const isStream = isMostProbablyStream(val)
+  const _isStream = isStream(val)
   const isCmp = isComponentNode(val)
   const isInlineCmp = isInlineComponent(val, path)
 
-  if (!isStream && !isCmp && !isInlineCmp) {
+  if (!_isStream && !isCmp && !isInlineCmp) {
     return [acc, false]
   }
 
@@ -166,7 +160,7 @@ const makeTraverseAction = config => (acc, val, path) => {
 
 const cloneDeepVdom = vdom => cloneDeepWith(vdom, value => {
   if (
-    isMostProbablyStream(value) ||
+    isStream(value) ||
     value && value.$$typeof === Symbol.for('react.forward_ref')
   ) {
     return value
