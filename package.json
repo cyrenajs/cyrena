@@ -1,6 +1,6 @@
 {
   "name": "powercycle",
-  "version": "0.11.0",
+  "version": "0.10.1",
   "description": "Mix the simplicity of React with the power of Cycle.js",
   "main": "powercycle.js",
   "scripts": {

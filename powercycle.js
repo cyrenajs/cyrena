@@ -1,22 +1,16 @@
 import clone from 'lodash/clone'
-import cloneDeep from 'lodash/cloneDeep'
-import cloneDeepWith from 'lodash/cloneDeepWith'
 import zip from 'lodash/zip'
 import mapValues from 'lodash/fp/mapValues'
 import castArray from 'lodash/castArray'
 import mergeWith from 'lodash/mergeWith'
 import compact from 'lodash/compact'
-import pick from 'lodash/pick'
 import omit from 'lodash/omit'
 import _get from 'lodash/get'
 import set from 'lodash/set'
-import defaultTo from 'lodash/defaultTo'
-import isObject from 'lodash/isObject'
-import isPlainObject from 'lodash/isPlainObject'
-import escapeRegExp from 'lodash/escapeRegExp'
 import dropRight from 'lodash/dropRight'
 import last from 'lodash/last'
 import uniqueId from 'lodash/uniqueId'
+import without from 'lodash/without'
 
 import xs, { Stream } from 'xstream'
 import isolate from '@cycle/isolate'
@@ -89,8 +83,12 @@ const resolveShorthandOutput = cmp => sources => {
   const output = castArray(cmp(powerUpSources(sources)))
 
   return isElement(output[0])
-    // it's a shorthand return value
-    ? powercycle(output[0], output[1], output[2] || sources)
+    // it's a shorthand return value: vdom, eventSinks, optional sources
+    ? powercycle(
+      output[0],
+      output[1],
+      output[2] || sources
+    )
     // it's a regular cyclejs sinks object
     : output[0]
 }
@@ -165,19 +163,25 @@ const makeTraverseAction = config => (acc, val, path, root) => {
   return [acc, true]
 }
 
-const cloneDeepVdom = vdom => cloneDeepWith(vdom, value => {
-  if (
-    isStream(value) ||
-    value && value.$$typeof === Symbol.for('react.forward_ref')
-  ) {
-    return value
+const getCmpAutoKey = (cmpId, path) => {
+  return `pc-cmp-autokey-#${cmpId}-` +
+    without(path, 'props', 'children').join('.')
+}
+
+const clonePath = (path, vdom) => {
+  let node = vdom
+
+  for (let i = 0; i < path.length; i++) {
+    node[path[i]] = clone(node[path[i]])
+    node = node[path[i]]
   }
-})
+
+  return vdom
+}
 
 const makePowercycle = config => (vdom, eventSinks, sources) => {
-  // Wrap it in an array to make path-based substitution work with root
-  // streams
-  const root = [injectAutoSel(vdom)]
+  // Wrap it in an array to make path-based substitution work with root streams.
+  let root = [injectAutoSel(vdom)]
 
   const traverseAction = makeTraverseAction({
     ...config,
@@ -193,34 +197,50 @@ const makePowercycle = config => (vdom, eventSinks, sources) => {
       : node.val
   )
 
+  const cmpId = uniqueId()
+
   // Combine the vdom and stream node streams,
   // and place their values into the original structure
   const vdom$ = config.combineFn(signalStreams)
     .map(signalValues => {
-      // I know it hurts. But it seems like React re-freezes the vdom tree
-      // between render loops. Needs more investigation in React's codebase
-      // why and how this happens
-      const _root = cloneDeepVdom(root)
+      zip(signalValues, streamInfoRecords)
+        // Filter out unchanged placeholder values
+        .filter(([val, info]) => {
+          return !Reflect.has(info, 'lastValue') || info.lastValue !== val
+        })
+        .forEach(([val, info]) => {
+          info.lastValue = val
 
-      zip(signalValues, streamInfoRecords).forEach(([val, info]) => {
-        if (isElement(val) && !val.key) {
-          // info.path.join('.') would be nice, but produces "0" keys on sibling
-          // isolated components. uniqueId is not a good idea, it causes focus
-          // loss. Object instance seems to work nicely. We could make a unique
-          // string from it with a WeakMap, or do a better job digging out the
-          // parent path and appending our path to it; but for now, it just works.
-          val = { ...val, key: info }
-        }
-        set(_root, info.path, val)
+          let _val = val
 
-        // // A way to catch error caused by frozen react vdom
-        // if (_get(_root, info.path) !== val) {
-        //   console.error('Can\'t write value into VDOM.')
-        // }
+          if (isElement(val) && !val.key) {
+            // info.path.join('.') would be nice, but produces "0" keys on sibling
+            // isolated components. uniqueId is not a good idea, it triggers a
+            // total re-render and causes focus loss. A uniqueId based on the
+            // stream record instance is a nice option, but even better, we use
+            // the placeholder's path relative to the cmp, and combine it with
+            // the cmp id
+            info.autoKey = info.autoKey || getCmpAutoKey(cmpId, info.path)
+            _val = { ..._val, key: info.autoKey }
+          }
+
+          // It serves two purposes here:
+          // 1. de-freeze the vdom, frozen by React
+          // 2. change object references to avoid reconciliation bailouts, e.g. at
+          // react/packages/react-reconciler/src/ReactFiberBeginWork.js:2387
+          // oldProps.children === newProps.children
+          root = clonePath(info.path, root)
+
+          set(root, info.path, _val)
+
+          // A way to catch error caused by frozen react vdom/props/etc. object
+          // if (_get(root, info.path) !== _val) {
+          //   console.error('Can\'t write value into VDOM: ', _val, info.path)
+          // }
+        })
+
+        return root[0]
       })
-
-      return _root[0]
-    })
 
   // Gather all event sinks (all but vdom) and merge them together by type
   const allEventSinks =
