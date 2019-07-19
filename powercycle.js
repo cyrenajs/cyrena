@@ -184,10 +184,10 @@ const makePowercycle = config => (vdom, eventSinks, sources) => {
     sources: depowerSources(sources)
   })
 
-  const streamInfoRecords = traverse(traverseAction, root)
+  const placeholders = traverse(traverseAction, root)
 
   // Get the signal streams (the ones which need to be combined)
-  const signalStreams = streamInfoRecords.map(node =>
+  const signalStreams = placeholders.map(node =>
     node.isCmp
       ? node.sinks[config.vdomProp]
       : node.val
@@ -199,7 +199,7 @@ const makePowercycle = config => (vdom, eventSinks, sources) => {
   // and place their values into the original structure
   const vdom$ = config.combineFn(signalStreams)
     .map(signalValues => {
-      zip(signalValues, streamInfoRecords)
+      zip(signalValues, placeholders)
         // Filter out unchanged placeholder values
         .filter(([val, info]) => {
           return !Reflect.has(info, 'lastValue') || info.lastValue !== val
@@ -240,7 +240,7 @@ const makePowercycle = config => (vdom, eventSinks, sources) => {
 
   // Gather all event sinks (all but vdom) and merge them together by type
   const allEventSinks =
-    [streamInfoRecords]
+    [placeholders]
       .map(xs => xs.filter(rec => rec.isCmp))
       .map(xs => xs.map(rec => rec.sinks))
       .map(xs => [eventSinks || {}, ...xs])
