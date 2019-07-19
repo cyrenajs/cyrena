@@ -49,8 +49,18 @@ const isElement = val =>
     val.$$typeof === Symbol.for('react.element')
   )
 
-const isStream = val =>
-  val instanceof Stream
+const isStream = val => {
+  let _isStream = val instanceof Stream
+
+  if (!isStream && /^(?:Memory)Stream$/i.test(_get(val, 'constructor.name'))) {
+    console.warn('Stream detection failed with instanceof check, but it pretty ' +
+      'much seems like a stream. It\'s probably a double xstream instance ' +
+      'problem on codesandbox.')
+    return true
+  }
+
+  return _isStream
+}
 
 const isInlineComponent = (val, path, root) => {
   // Map to string before join to prevent errors on symbol keys (from our pragma)
