@@ -52,7 +52,7 @@ const isElement = val =>
 const isStream = val => {
   let _isStream = val instanceof Stream
 
-  if (!isStream && /^(?:Memory)Stream$/i.test(_get(val, 'constructor.name'))) {
+  if (!_isStream && /^(?:Memory)Stream$/i.test(_get(val, 'constructor.name'))) {
     console.warn('Stream detection failed with instanceof check, but it pretty ' +
       'much seems like a stream. It\'s probably a double xstream instance ' +
       'problem on codesandbox.')
