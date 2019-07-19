@@ -6,7 +6,6 @@ import defaultTo from 'lodash/defaultTo'
 // import clone from 'lodash/clone'
 
 export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
-export const VDOM_ELEMENT_KEY_PROP = Symbol('powercycle.key')
 
 // De-freeze the vdom element to allow placeholder fill-ups. Not needed
 // at the moment, but I just leave it here for reference.
@@ -24,18 +23,7 @@ export const VDOM_ELEMENT_KEY_PROP = Symbol('powercycle.key')
 //   return el
 // }
 
-export function pragma(node, attr, ...children) {
-  const key = attr && attr.key
-
-  const props = {
-    ...attr,
-    // Enforce key presence to suppress warnings coming from react pragma.
-    // Not sure if it's a good idea, but for now it just frees us from
-    // those annoying warnings... Collection is handling its item keys
-    // on its own. This is probably for sibling DOM elements, but I'm not sure.
-    key: defaultTo(key, 'pc-pragma-autokey-' + uniqueId())
-  }
-
+export function pragma(node, props, ...children) {
   let element = jsxFactory.createElement(node, props, ...children)
 
   return {
@@ -43,7 +31,6 @@ export function pragma(node, attr, ...children) {
     // on every propagation anyway to trigger change detection in React.
     // ...deFreezeElement(element),
     ...element,
-    [VDOM_ELEMENT_FLAG]: true,
-    [VDOM_ELEMENT_KEY_PROP]: key
+    [VDOM_ELEMENT_FLAG]: true
   }
 }

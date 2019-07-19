@@ -19,7 +19,6 @@ import {
   pragma,
   Fragment,
   VDOM_ELEMENT_FLAG,
-  VDOM_ELEMENT_KEY_PROP,
 } from './react/pragma'
 
 export { pragma, Fragment } from './react/pragma'
@@ -145,16 +144,13 @@ const makeTraverseAction = config => (acc, val, path, root) => {
     props: {
       ...config.sources.props,
       ...val.props
-    },
-    key: val[VDOM_ELEMENT_KEY_PROP]
+    }
   }
 
   const sinks =
     (isCmp || isInlineCmp) && cmp(sources)
 
-  const _path = last(path) === VDOM_ELEMENT_KEY_PROP
-    ? [...dropRight(path), 'key']
-    : path
+  const _path = path
 
   acc.push({ val, path: _path, isCmp: isCmp || isInlineCmp, sinks })
 
