@@ -5,6 +5,7 @@ import omit from 'lodash/omit'
 import mapValues from 'lodash/mapValues'
 import pick from 'lodash/pick'
 import forEach from 'lodash/forEach'
+import uniqueId from 'lodash/uniqueId'
 
 import {
   pragma,
@@ -92,12 +93,22 @@ const EVENT_PROPS = (
   'AnimationStart|AnimationEnd|AnimationIteration|TransitionEnd|Toggle'
 ).split('|').map(ev => 'on' + ev)
 
-// Makes these shortcuts available:
-//   {src => [<button>Inc</button>, { state: src.el.click.mapTo(1) }]}
-//   <button onClick={{ state: ev => ev.mapTo(1) }}>Inc</button>
-//   <button onClick={ev => ev.mapTo(1)}>Inc</button>
+// Makes these shortcuts available for the following:
+//   {src => [<button>Inc</button>, { state: src.el.click.mapTo(prev => prev + 1) }]}
+//
+// 1. A special sink definition where we define sink keys and event-to-sinkstream
+//    mappers:
+//     <button onClick={{ state: ev => prev => prev + 1 }}>Inc</button>
+// 2. An event-to-sinkstream mapper for the state sink:
+//     <button onClick={ev => prev => prev + 1}>Inc</button>
 export function transformVdomWithEventProps(vdom, mergeFn) {
-  if (!vdom || typeof vdom.type !== 'string') {
+  const isOrdinaryDomElement =
+    vdom && typeof vdom.type === 'string'
+
+  const isDomElementWithSel =
+    vdom && vdom.type && vdom.type.$$typeof === Symbol.for('react.forward_ref')
+
+  if (!isOrdinaryDomElement && !isDomElementWithSel) {
     return
   }
 
@@ -107,6 +118,9 @@ export function transformVdomWithEventProps(vdom, mergeFn) {
     return
   }
 
+  // We have to generate a unique sel, because we can't scope down the
+  // generated inline component. See the comment at the bottom.
+  const sel = vdom.props.sel || 'autosel-' + uniqueId()
   const type = vdom.type
   const children = vdom.props.children
   const props = omit(
@@ -124,8 +138,8 @@ export function transformVdomWithEventProps(vdom, mergeFn) {
 
       const eventNameDom = propKey.replace(/^on/, '').toLowerCase()
 
-      forEach(_handler, (makeStreamFn, channel) => {
-        const stream = makeStreamFn(sources.el[eventNameDom])
+      forEach(_handler, (mapper, channel) => {
+        const stream = sources.sel[sel][eventNameDom].map(mapper)
 
         sinks[channel] = !sinks[channel]
           ? stream
@@ -134,13 +148,22 @@ export function transformVdomWithEventProps(vdom, mergeFn) {
     })
 
     return [
-      pragma(type, props, children),
+      pragma(type, { ...props, sel }, children),
       sinks
     ]
   }
 
   vdom.type = Fragment
   vdom.props = {
-    children: sources => getSinks(sources)
+    // We must prevent scoping here! Otherwise in this case the HTTP sink will
+    // not get the click stream:
+    // {src => [
+    //   <button onClick={...}>Remove this</button>,
+    //   { HTTP: src.el.click. ... }
+    // ]}
+    children: Object.assign(
+      sources => getSinks(sources),
+      { props: { noscope: true }}
+    )
   }
 }
