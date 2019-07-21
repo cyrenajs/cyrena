@@ -96,10 +96,10 @@ const EVENT_PROPS = (
 // Makes these shortcuts available for the following:
 //   {src => [<button>Inc</button>, { state: src.el.click.mapTo(prev => prev + 1) }]}
 //
-// 1. A special sink definition where we define sink keys and event-to-sinkstream
+// 1. A special sink definition where we define sink keys and event$-to-sink$
 //    mappers:
-//     <button onClick={{ state: ev => prev => prev + 1 }}>Inc</button>
-// 2. An event-to-sinkstream mapper for the state sink:
+//     <button onClick={{ state: ev$ => ev$.mapTo(prev => prev + 1) }}>Inc</button>
+// 2. A callback which maps from event to state:
 //     <button onClick={ev => prev => prev + 1}>Inc</button>
 export function transformVdomWithEventProps(vdom, mergeFn) {
   const isOrdinaryDomElement =
@@ -120,7 +120,7 @@ export function transformVdomWithEventProps(vdom, mergeFn) {
 
   // We have to generate a unique sel, because we can't scope down the
   // generated inline component. See the comment at the bottom.
-  const sel = vdom.props.sel || 'autosel-' + uniqueId()
+  const sel = vdom.props.sel || Symbol('eventprop-autosel')
   const type = vdom.type
   const children = vdom.props.children
   const props = omit(
