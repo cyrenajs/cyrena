@@ -133,13 +133,13 @@ export function transformVdomWithEventProps(vdom, mergeFn) {
 
     forEach(eventProps, (handler, propKey) => {
       const _handler = typeof handler === 'function'
-        ? { state: handler }
+        ? { state: stream => stream.map(handler) }
         : handler
 
       const eventNameDom = propKey.replace(/^on/, '').toLowerCase()
 
-      forEach(_handler, (mapper, channel) => {
-        const stream = sources.sel[sel][eventNameDom].map(mapper)
+      forEach(_handler, (handler, channel) => {
+        const stream = handler(sources.sel[sel][eventNameDom])
 
         sinks[channel] = !sinks[channel]
           ? stream
