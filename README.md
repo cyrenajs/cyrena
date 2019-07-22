@@ -30,13 +30,13 @@ React and Cycle.js have separate advantages and compromises, and I wanted to bri
 
 <p>Being view-based means, that when we see a piece of React code, we immediately recognize the structure of the app or component by having a glimpse on the JSX part.</p>
 
-<p>But all this comes at the price of an unconventional programming model, where the render function gets called many times by the runtime. And having the ability to return with completely different output VDOMs based on different inputs, defeats the purpose of the JSX as a structural overview. In idiomatic React code, most of the JSX is conceptually a static hierarchy, which contains changing bits and pieces. But in reality, not just the changing parts, but all the conceptually static parts, too, are re-evaluated and matched with the previous output. Sometimes it needs special awarenes. And this reasoning goes for the logic as well, with the well-known <a href="https://reactjs.org/docs/hooks-rules.html">Rules of Hooks</a>. This might not be a big deal, you might think, but what I think is that we can do it better.</p>
+<p>But all this comes at the price of an unconventional programming model, where the render function gets called many times by the runtime. And having the ability to return with completely different output VDOMs based on different inputs, defeats the purpose of the JSX as a structural overview. In idiomatic React code, most of the JSX is conceptually a static hierarchy, which contains changing bits and pieces. But in reality, not just the changing parts, but all the conceptually static parts, too, are re-evaluated and matched with the previous output. Sometimes it needs special awareness. And this reasoning goes for the logic as well, with the well-known <a href="https://reactjs.org/docs/hooks-rules.html">Rules of Hooks</a>. This might not be a big deal, you might think, but what I think is that we can do it better.</p>
 
 <h3>Cycle.js</h3>
 
 <p>Cycle.js is a purely functional-reactive framework, and I won't detail how useful this fact is. It's also quite mature in its current state. Components are static, they're called once, and not by a runtime, but simply by the app author. The downside of it is that it's <em>not view-based</em>. Sure, we do have the view part, and it can even be JSX, but unfortunately this view part is not in the static scope. It's in the same iteratee-realm in which React is. But here it comes with a serious consequence: there's no easy composition! You can't throw in components in the VDOM tree. You have to do cumbersome boilerplate even for basic composition.</p>
 
-<p>This led me to explore the possibilities to make something as simple and composoble as React, but as <em>right</em> in its programming model as Cycle.js. This pursue resulted in Powercycle.</p>
+<p>This led me to explore the possibilities to make something as simple and composable as React, but as <em>right</em> in its programming model as Cycle.js. This pursue resulted in Powercycle.</p>
 
 </details>
 
@@ -47,8 +47,9 @@ React and Cycle.js have separate advantages and compromises, and I wanted to bri
 1. [Static VDOM composition](#static-vdom-composition)
 1. [Streams and components everywhere](#streams-and-components-everywhere)
 1. [Scopes](#scopes)
-1. [React realms](#react-realms)
 1. [Collection](#collection)
+1. [Event props](#event-props)
+1. [React realms](#react-realms)
 1. [Helpers, Shortcuts and Tips](#helpers-shortcuts-and-tips)
 
 ### Installation
@@ -362,44 +363,6 @@ By default, every component in Powercycle is scoped on the view channel. If you 
 
 [See the Todo example](https://codesandbox.io/s/2wv3r9ojqp)
 
-### React realms
-
-React components can be included in the VDOM by wrapping them in the ReactRealm component. To use the state from the Cycle.js environment, Powercycle offers the `useCycleState` hook. You can put any content inside the opening and closing `<ReactRealm>` tags, they won't be traversed by Powercycle. That part of the VDOM will go directly into the React engine:
-
-```jsx
-import { ReactRealm, useCycleState } from 'powercycle/util/ReactRealm'
-
-function ReactCounter(props) {
-  const [count, setCount] = useCycleState(props.sources)
-
-  return (
-    <div>
-      <div>Counter: {count}</div>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </div>
-  )
-}
-
-function main(sources) {
-  const state$ = sources.state.stream
-
-  const reducer$ = xs.of(() => ({
-    counter: 5
-  }))
-
-  return [
-    <div>
-      <ReactRealm scope='counter'>
-        We're under a React realm!
-        <ReactCounter />
-      </ReactRealm>
-      <pre>{state$.map(JSON.stringify)}</pre>
-    </div>,
-    { state: reducer$ }
-  ]
-}
-```
-
 ### Collection
 
 Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to `Collection`. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags. The Collection package also has a const for item removal reducer:
@@ -448,9 +411,139 @@ There are cases when you need to interact with the outer state from the items. F
 
 [See the Todo app for an example](https://codesandbox.io/s/2wv3r9ojqp)
 
+
+### Event props
+
+Powercycle makes use of _onClick_-style even props on elements. Event props are basically [shortcuts](#helpers-shortcuts-and-tips)
+for inline components. There are 2 types of event props:
+
+* `on<Eventname>={{ sink1: <event$ to sink$ mapper>, sink2: <event$ to sink$ mapper>, ...}`
+
+When the event prop value is an object, it is treaded as a special sinks object, where the values are mappers
+between the event _stream_ to the sink _stream_.
+
+* `on<Eventname>={<event to state mapper>}`
+
+When the event prop value is a function, it is handled as a mapper between the event object and the state. The
+state will be consumed by the state sink.
+
+Examples:
+
+```jsx
+<div>
+  {src => [
+    <button>Make a request</button>,
+    {
+      state: src.el.click.map(ev => `${ev.clientX},${ev.clientY}`),
+      HTTP: src.el.click.mapTo({ url: '?you-clicked' })
+    }
+  ]}
+</div>
+```
+
+With using event props, this can be rewritten as:
+
+```jsx
+<div>
+  <button
+    onClick={{
+      state: ev$ => ev$.map(ev => `${ev.clientX},${ev.clientY}`),
+      HTTP: ev$ => ev$.mapTo({ url: '?you-clicked' })
+    }}
+  >Make a request</button>
+</div>
+```
+
+Or if it's only about sending something into the state sink:
+
+```jsx
+<div>
+  <button onClick={ev => ({ action: 'ADD' })}>Add</button>
+</div>
+```
+
+Let's see another example. Here, we want to use a reducer with a `<select>` element:
+
+```jsx
+function Combobox (sources) {
+  return (
+    <>
+      <label>Color: </label>
+      <select
+        value={get('', sources)}
+        onChange={ev => prev => ({ ...prev, color: ev.target.value })}
+      >
+        <option value='red'>Red</option>
+        <option value='blue'>Blue</option>
+      </select>
+    </>
+  )
+}
+```
+
+In this case, by the time the reducer will be called, the event object will be nullyfied
+by React, and React will throw an error. Destructuring the arguments helps to overcome this problem:
+
+```jsx
+function Combobox (sources) {
+  return (
+    <>
+      <label>Color: </label>
+      <select
+        value={get('', sources)}
+        onChange={({ target: { value }}) => prev => ({ ...prev, color: value })}
+      >
+        <option value='red'>Red</option>
+        <option value='blue'>Blue</option>
+      </select>
+    </>
+  )
+}
+```
+
+### React realms
+
+React components can be included in the VDOM by wrapping them in the ReactRealm component. To use the state from the Cycle.js environment, Powercycle offers the `useCycleState` hook. You can put any content inside the opening and closing `<ReactRealm>` tags, they won't be traversed by Powercycle. That part of the VDOM will go directly into the React engine:
+
+```jsx
+import { ReactRealm, useCycleState } from 'powercycle/util/ReactRealm'
+
+function ReactCounter(props) {
+  const [count, setCount] = useCycleState(props.sources)
+
+  return (
+    <div>
+      <div>Counter: {count}</div>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
+}
+
+function main(sources) {
+  const state$ = sources.state.stream
+
+  const reducer$ = xs.of(() => ({
+    counter: 5
+  }))
+
+  return [
+    <div>
+      <ReactRealm scope='counter'>
+        We're under a React realm!
+        <ReactCounter />
+      </ReactRealm>
+      <pre>{state$.map(JSON.stringify)}</pre>
+    </div>,
+    { state: reducer$ }
+  ]
+}
+```
+
 ### Helpers, Shortcuts and Tips
 
-* `map`
+* #### [Event props](#event-props)
+
+* #### `map`
   The `map` utility function is a handy helper to get the state in the VDOM. It has 2 signatures:
   * `map(mapperFn, <sources>)`
 
@@ -478,9 +571,9 @@ There are cases when you need to interact with the outer state from the items. F
   }
   ```
 
-  Note, that in props, you can only use it with the sources object, as inline components are not applicable as props:
+  Note, that in props, you can only use it with the sources object, as inline components are not applicable as props.
 
-* `get`
+* #### `get`
 
   The `get` function works exactly like `map` regarding its signature. The only difference is that it uses a Lodash getter as the mapperFn. It's a convenient shortcut for getting a chunk of the state:
 
@@ -512,7 +605,7 @@ There are cases when you need to interact with the outer state from the items. F
   }
   ```
 
-* *View selection shortcuts*
+* #### *sources.sel[<selector>]*
 
   View selection has a convenience shortcut. Instead of writing
 
@@ -530,7 +623,7 @@ There are cases when you need to interact with the outer state from the items. F
       <Combobox />
 
       {src => [
-        <button sel='remove' style={ { float: 'right' } }>Remove</button>,
+        <button sel='remove'>Remove</button>,
         { state: src.sel.remove.click.mapTo(COLLECTION_DELETE) }
       ]}
 
@@ -545,6 +638,19 @@ There are cases when you need to interact with the outer state from the items. F
   </Collection>
   ```
 
-* *How to opt-out from the Powercycle control*
+  * #### *sources.el*
+
+  On a relative root element, you can even leave `sel=` and just write `sources.el`,
+  which will refer to the root element:
+
+  ```jsx
+  {src => [
+    <button>Remove</button>,
+    { state: src.el.click.mapTo(COLLECTION_DELETE) }
+  ]}
+  ```
+
+
+* #### *How to opt-out from the Powercycle control?*
 
   You can opt-out from Powercycle at any place in the VDOM by just returning a regular sinks object. The underlying components will not be controlled by Powercycle.
