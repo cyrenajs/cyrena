@@ -417,7 +417,7 @@ There are cases when you need to interact with the outer state from the items. F
 Powercycle makes use of _onClick_-style even props on elements. Event props are basically [shortcuts](#helpers-shortcuts-and-tips)
 for inline components. There are 2 types of event props:
 
-* `on<Eventname>={{ sink1: <event$ to sink$ mapper>, sink2: <event$ to sink$ mapper>, ...}`
+* `on<Eventname>={ { sink1: <event$ to sink$ mapper>, sink2: <event$ to sink$ mapper>, ...} }`
 
 When the event prop value is an object, it is treaded as a special sinks object, where the values are mappers
 between the event _stream_ to the sink _stream_.
@@ -446,7 +446,7 @@ With using event props, this can be rewritten as:
 ```jsx
 <div>
   <button
-    onClick={{
+    onClick={ {
       state: ev$ => ev$.map(ev => `${ev.clientX},${ev.clientY}`),
       HTTP: ev$ => ev$.mapTo({ url: '?you-clicked' })
     }}
