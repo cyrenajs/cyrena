@@ -27,7 +27,7 @@ const getIndexInjectorLens = (idKey, indexKey) => ({
     // Not sure why it doesn't work in the setter. (But it doesn't.)
     const _record = clone(record)
 
-    Object.defineProperty(_record, '$index', {
+    Object.defineProperty(_record, indexKey, {
       get() { return idx },
       enumerable: false,
       configurable: true
