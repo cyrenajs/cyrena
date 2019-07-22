@@ -55,9 +55,9 @@ const isStream = val => {
   let _isStream = val instanceof Stream
 
   if (!_isStream && /^(?:Memory)Stream$/i.test(_get(val, 'constructor.name'))) {
-    console.warn('Stream detection failed with instanceof check, but it pretty ' +
-      'much seems like a stream. It\'s probably a double xstream instance ' +
-      'problem on codesandbox.')
+    console.warn('Powercycle\'s stream detection failed on an object with an ' +
+      'instanceof check, but it pretty much seems like a stream. It\'s probably ' +
+      'a double xstream instance problem on codesandbox.')
     return true
   }
 
