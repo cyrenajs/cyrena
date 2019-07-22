@@ -15,6 +15,8 @@ import without from 'lodash/without'
 import xs, { Stream } from 'xstream'
 import isolate from '@cycle/isolate'
 
+export { makeDOMDriver } from '@cycle/react-dom'
+
 import {
   pragma,
   Fragment,
