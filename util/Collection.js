@@ -15,30 +15,39 @@ export const COLLECTION_DELETE =
 
 const getIndexInjectorLens = (idKey, indexKey) => ({
   get: state => state.map((record, idx) => {
-    if (!record[idKey]) {
-      console.warn(
-        `Collection item is expecting id key (${idKey}). You can provide an ` +
-        `empty object for it, like: id: {}`
-      )
-    }
-
     if (record[indexKey] !== undefined) {
       console.warn(
-        `Collection item already has an '${indexKey}' property. Choose another ` +
-        `index key on the Collection by specifying the indexkey prop.`
+        `Powercycle Collection item already has an '${indexKey}' property. ` +
+        `Choose another index key on the Collection by specifying the ` +
+        `indexkey prop.`
       )
     }
 
-    return { [indexKey]: idx, ...record }
+    // Without this, the above warning always appear when a list item changes.
+    // Not sure why it doesn't work in the setter. (But it doesn't.)
+    const _record = clone(record)
+
+    Object.defineProperty(_record, '$index', {
+      get() { return idx },
+      enumerable: false,
+      configurable: true
+    })
+
+    return _record
   }),
-  set: (state, childState) => childState.map(omit(indexKey))
+  set: (state, childState) => {
+    return childState.map(record => {
+      Reflect.deleteProperty(record, indexKey);
+      return record
+    })
+  }
 })
 
-const CollectionItem = idKey => sources =>
+const CollectionItem = sources =>
   powercycle(
     pragma(
       Fragment,
-      { key: get(idKey, sources) },
+      null,
       sources.props.children
     ),
     null,
@@ -47,16 +56,14 @@ const CollectionItem = idKey => sources =>
 
 export function Collection (sources) {
   const indexKey = sources.props.indexkey || '$index'
+  const noIndex = sources.props.noindex || false
   const idKey = sources.props.idkey || 'id'
   const outerStateName = sources.props.outerstate || 'outerState'
-
-  // The vdom key of the item fragment wrapper
-  const innerFragmentKey = sources.key || uniqueId()
 
   const List = [0]
     .map(() =>
       makeCollection({
-        item: CollectionItem(idKey),
+        item: CollectionItem,
 
         // I'm not sure what it's for. From cycle's source, it seems like that it
         // serves as an isolation base, but we already have isolation on the items...
@@ -85,14 +92,12 @@ export function Collection (sources) {
               ...sinks,
               [CONFIG.vdomProp]: instances
                 .pickCombine(CONFIG.vdomProp)
-                .map(itemVdoms => pragma(
-                  Fragment,
-                  { key: innerFragmentKey },
+                .map(itemVdoms =>
                   itemVdoms.map((vdom, idx) => ({
                     ...vdom,
                     key: String(idx)
                   }))
-                ))
+                )
             }))
           [0]
       })
@@ -104,9 +109,11 @@ export function Collection (sources) {
     // also not an alternative, because collection items run once, and sources
     // does not refresh. So for now, we have to live with this O(N) expense.
     .map(list =>
-      isolate(list, {
-        state: getIndexInjectorLens(idKey, indexKey)
-      })
+      noIndex
+        ? list
+        : isolate(list, {
+            state: getIndexInjectorLens(idKey, indexKey)
+          })
     )
 
     // Resolve 'for' prop. The 'for' prop has the same effect of 'scope', except
@@ -133,12 +140,7 @@ export function Collection (sources) {
       }
     })
 
-    // Wrap it in a fragment to prevent 'missing unique key' warning from react
-    // in case of having adjacent elements to the Collection. makeCollection
-    // generates a Context.Provider element, which can't have key.
-    .map(list =>
-      pragma(Fragment, null, pragma(list, null, sources.props.children))
-    )
+    .map(list => pragma(list, null, sources.props.children))
   [0]
 
   return List
