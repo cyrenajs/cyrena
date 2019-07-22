@@ -140,9 +140,9 @@ const makeTraverseAction = config => (acc, val, path, root) => {
       : _get(val, 'props.noscope')
         ? regularCmp
         : isolate(regularCmp, {
-          [config.vdomProp]: path.join('.'),
-          '*': null
-        })
+            [config.vdomProp]: path.join('.'),
+            '*': null
+          })
     )
 
   // We pass key and props in the sources object
