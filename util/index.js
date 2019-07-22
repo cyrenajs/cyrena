@@ -24,4 +24,4 @@ export const map = (fn, src) =>
     : src => pragma(Fragment, null, map(fn, src))
 
 export const get = (key, src) =>
-  map(state => _get(state, key, state), src)
+  map(state => key ? _get(state, key) : state, src)
