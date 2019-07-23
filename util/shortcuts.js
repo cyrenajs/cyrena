@@ -101,7 +101,7 @@ const EVENT_PROPS = (
 //     <button onClick={{ state: ev$ => ev$.mapTo(prev => prev + 1) }}>Inc</button>
 // 2. A callback which maps from event to state:
 //     <button onClick={ev => prev => prev + 1}>Inc</button>
-export function transformVdomWithEventProps(vdom, mergeFn) {
+export function resolveEventProps(vdom, mergeFn) {
   const isOrdinaryDomElement =
     vdom && typeof vdom.type === 'string'
 
