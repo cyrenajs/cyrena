@@ -39,6 +39,9 @@ export const CONFIG = {
   mergeFn: streams => xs.merge(...streams)
 }
 
+export const INLINE_CMP =
+  Symbol('powercycle.inlineCmp')
+
 const isComponentNode = node =>
   node && typeof node.type === 'function'
 
@@ -64,14 +67,14 @@ const isStream = val => {
   return _isStream
 }
 
-const isInlineComponent = (val, path, root) => {
+const isVdomChild = path =>
   // Map to string before join to prevent errors on symbol keys (from our pragma)
-  const possibleParentElementPath =
-    path.map(String).join('.').replace(/\.props\.children(?:\.\d+)?$/, '')
+  /^0(?:\.props\.children(?:\.\d+)?)*$/.test(path.map(String).join('.'))
 
-  return typeof val === 'function'
-    && possibleParentElementPath !== path.map(String).join('.')
-    && isElement(_get(root, possibleParentElementPath))
+const isInlineComponent = (val, path) => {
+  return typeof val === 'function' && (
+    val[INLINE_CMP] || isVdomChild(path)
+  )
 }
 
 export const powerIsolate = (Cmp, scope) => sources =>
@@ -122,33 +125,34 @@ const makeTraverseAction = config => (acc, val, path, root) => {
   transformVdomWithEventProps(val, config.mergeFn)
 
   const _isStream = isStream(val)
-  const isCmp = isComponentNode(val)
-  const isInlineCmp = isInlineComponent(val, path, root)
+  const isRegularCmp = isComponentNode(val)
+  const isInlineCmp = isInlineComponent(val, path)
+  const isCmp = isRegularCmp || isInlineCmp
 
-  if (!_isStream && !isCmp && !isInlineCmp) {
+  if (!_isStream && !isCmp) {
     return [acc, false]
   }
 
-  const scope = isCmp && resolveDotSeparatedScope(val.props.scope)
+  const scope = isRegularCmp && resolveDotSeparatedScope(val.props.scope)
 
   const regularCmp =
-    isCmp && resolveShorthandOutput(val.type) ||
+    isRegularCmp && resolveShorthandOutput(val.type) ||
     isInlineCmp && resolveShorthandOutput(val)
 
-  const cmp = (isCmp || isInlineCmp) && (
+  const cmp = isCmp && (
     scope
       ? powerIsolate(regularCmp, scope)
       // Automatically isolate component vdoms unless 'noscope' is specified
-      : _get(val, 'props.noscope')
-        ? regularCmp
-        : isolate(regularCmp, {
+      : !_get(val, 'props.noscope')
+        ? isolate(regularCmp, {
             [config.vdomProp]: path.join('.'),
             '*': null
           })
+        : regularCmp
     )
 
   // We pass key and props in the sources object
-  const sources = (isCmp || isInlineCmp) && {
+  const sources = isCmp && {
     ...config.sources,
     // Merge outer props onto inner. Normally the outer one (val.props)
     // should be sufficient, but isolation wrapping makes it lost, and so we
@@ -159,12 +163,9 @@ const makeTraverseAction = config => (acc, val, path, root) => {
     }
   }
 
-  const sinks =
-    (isCmp || isInlineCmp) && cmp(sources)
+  const sinks = isCmp && cmp(sources)
 
-  const _path = path
-
-  acc.push({ val, path: _path, isCmp: isCmp || isInlineCmp, sinks })
+  acc.push({ val, path, isCmp, sinks })
 
   // Return with the accumulator object, and a second boolean value which
   // tells if the traversal should stop at this branch

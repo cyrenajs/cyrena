@@ -13,35 +13,18 @@ import { get } from './index'
 export const COLLECTION_DELETE =
   prevState => undefined
 
-const getIndexInjectorLens = (idKey, indexKey) => ({
-  get: state => state.map((record, idx) => {
-    if (record[indexKey] !== undefined) {
-      console.warn(
-        `Powercycle Collection item already has an '${indexKey}' property. ` +
-        `Choose another index key on the Collection by specifying the ` +
-        `indexkey prop.`
-      )
+const itemWrapperLens = {
+  get: state => state.map((item, index) => {
+    return {
+      item,
+      index,
+      collection: state
     }
-
-    // Without this, the above warning always appear when a list item changes.
-    // Not sure why it doesn't work in the setter. (But it doesn't.)
-    const _record = clone(record)
-
-    Object.defineProperty(_record, indexKey, {
-      get() { return idx },
-      enumerable: false,
-      configurable: true
-    })
-
-    return _record
   }),
   set: (state, childState) => {
-    return childState.map(record => {
-      Reflect.deleteProperty(record, indexKey);
-      return record
-    })
+    return childState.map(record => record.item)
   }
-})
+}
 
 const CollectionItem = sources =>
   powercycle(
@@ -55,9 +38,6 @@ const CollectionItem = sources =>
   )
 
 export function Collection (sources) {
-  const indexKey = sources.props.indexkey || '$index'
-  const noIndex = sources.props.noindex || false
-  const idKey = sources.props.idkey || 'id'
   const outerStateName = sources.props.outerstate || 'outerState'
 
   const List = [0]
@@ -109,11 +89,9 @@ export function Collection (sources) {
     // also not an alternative, because collection items run once, and sources
     // does not refresh. So for now, we have to live with this O(N) expense.
     .map(list =>
-      noIndex
-        ? list
-        : isolate(list, {
-            state: getIndexInjectorLens(idKey, indexKey)
-          })
+      isolate(list, {
+        state: itemWrapperLens
+      })
     )
 
     // Resolve 'for' prop. The 'for' prop has the same effect of 'scope', except
