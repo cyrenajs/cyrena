@@ -420,12 +420,12 @@ for inline components. There are 2 types of event props:
 
 * `on<Eventname>={ { sink1: <event$ to sink$ mapper>, sink2: <event$ to sink$ mapper>, ...} }`
 
-When the event prop value is an object, it is treaded as a special sinks object, where the values are mappers
+When the event prop value is an object, it is treated as a special sinks object, where the values are mappers
 between the event _stream_ to the sink _stream_.
 
 * `on<Eventname>={<event to state mapper>}`
 
-When the event prop value is a function, it is handled as a mapper between the event object and the state. The
+When the event prop value is a function, it is handled as a mapper between the event object and the state (reducer). The
 state will be consumed by the state sink.
 
 Examples:
@@ -433,19 +433,22 @@ Examples:
 ```jsx
 <div>
   {src => [
+    Last click position: {get()}<br />
     <button>Make a request</button>,
     {
-      state: src.el.click.map(ev => `${ev.clientX},${ev.clientY}`),
+      state: src.el.click.map(ev => () => `${ev.clientX},${ev.clientY}`),
       HTTP: src.el.click.mapTo({ url: '?you-clicked' })
     }
   ]}
 </div>
 ```
 
-With using event props, this can be rewritten as:
+With using event props, this can be rewritten as below. You can see that there's
+no more need to wrap the fragment in an inline component:
 
 ```jsx
 <div>
+  Last click position: {get()}<br />
   <button
     onClick={ {
       state: ev$ => ev$.map(ev => `${ev.clientX},${ev.clientY}`),
@@ -455,11 +458,12 @@ With using event props, this can be rewritten as:
 </div>
 ```
 
-Or if it's only about sending something into the state sink:
+Most of the times we're only concerned about the state sink. For this, the
+callback shortcut is even better:
 
 ```jsx
 <div>
-  <button onClick={ev => ({ action: 'ADD' })}>Add</button>
+  <button onClick={ev => () => ({ action: 'ADD' })}>Add</button>
 </div>
 ```
 
@@ -483,7 +487,8 @@ function Combobox (sources) {
 ```
 
 In this case, by the time the reducer will be called, the event object will be nullyfied
-by React, and React will throw an error. Destructuring the arguments helps to overcome this problem:
+by React, and React will throw an error related to the synthetic event. Destructuring
+the arguments helps to overcome this problem:
 
 ```jsx
 function Combobox (sources) {
@@ -491,7 +496,7 @@ function Combobox (sources) {
     <>
       <label>Color: </label>
       <select
-        value={get('', sources)}
+        value={get('color')}
         onChange={({ target: { value }}) => prev => ({ ...prev, color: value })}
       >
         <option value='red'>Red</option>
