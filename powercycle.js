@@ -132,27 +132,28 @@ function handleScope(cmp, props = {}, vdomProp) {
 
 const makeTraverseAction = config => (acc, val, path, root) => {
   const _isStream = isStream(val)
-  const isRegularCmp = isComponentNode(val)
-  const isInlineCmp = isInlineComponent(val, path)
-  const isCmp = isRegularCmp || isInlineCmp
+  const _isRegularCmp = isComponentNode(val)
+  const _isInlineCmp = isInlineComponent(val, path)
+  const _isCmp = _isRegularCmp || _isInlineCmp
   const _isStreamCallback = isStreamCallback(val)
 
   // This mutates the vdom (val)
   resolveEventProps(val, config.mergeFn)
 
-  if (!_isStream && !isCmp && !_isStreamCallback) {
+  if (!_isStream && !_isCmp && !_isStreamCallback) {
+    // The boolean is to tell the traversal to go on
     return [acc, false]
   }
 
   const regularCmp =
-    isRegularCmp && resolveShorthandOutput(val.type) ||
-    isInlineCmp && resolveShorthandOutput(val)
+    _isRegularCmp && resolveShorthandOutput(val.type) ||
+    _isInlineCmp && resolveShorthandOutput(val)
 
   const cmp =
-    isCmp && handleScope(regularCmp, val.props, config.vdomProp)
+    _isCmp && handleScope(regularCmp, val.props, config.vdomProp)
 
   // We pass key and props in the sources object
-  const sources = (isCmp || _isStreamCallback) && {
+  const sources = (_isCmp || _isStreamCallback) && {
     ...config.sources,
     // Merge outer props onto inner. Normally the outer one (val.props)
     // should be sufficient, but isolation wrapping makes it lost, and so we
@@ -163,16 +164,16 @@ const makeTraverseAction = config => (acc, val, path, root) => {
     }
   }
 
-  const sinks = isCmp && cmp(sources)
+  const sinks = _isCmp && cmp(sources)
 
   const _val = _isStreamCallback
     ? val(sources)
     : val
 
-  acc.push({ val: _val, path, isCmp, sinks })
+  acc.push({ val: _val, path, isCmp: _isCmp, sinks })
 
-  // Return with the accumulator object, and a second boolean value which
-  // tells if the traversal should stop at this branch
+  // Return with the accumulator object, and a second boolean value tells
+  // the traversal to stop
   return [acc, true]
 }
 
@@ -218,11 +219,11 @@ const makePowercycle = config =>
     const vdom$ = config.combineFn(signalStreams)
       .map(signalValues => {
         zip(signalValues, placeholders)
-          // Filter out unchanged placeholder values
-          .filter(([val, info]) => {
-            return !Reflect.has(info, 'lastValue') || info.lastValue !== val
-          })
           .forEach(([val, info]) => {
+            // Bailout on unchanged placeholder values
+            if (Reflect.has(info, 'lastValue') && info.lastValue === val) {
+              return
+            }
             info.lastValue = val
 
             let _val = val
