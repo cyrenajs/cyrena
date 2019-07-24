@@ -475,7 +475,7 @@ function Combobox (sources) {
     <>
       <label>Color: </label>
       <select
-        value={get('', sources)}
+        value={get('color')}
         onChange={ev => prev => ({ ...prev, color: ev.target.value })}
       >
         <option value='red'>Red</option>
