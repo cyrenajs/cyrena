@@ -7,11 +7,7 @@ import { powercycle, CONFIG, STREAM_CALLBACK } from '../powercycle'
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
 export function Scope (sources) {
-  return powercycle(
-    pragma(Fragment, null, ...castArray(sources.props.children)),
-    null,
-    sources
-  )
+  return pragma(Fragment, null, ...castArray(sources.props.children))
 }
 
 // Helper function to easily access state parts in the vdom.
