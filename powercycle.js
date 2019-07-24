@@ -30,6 +30,7 @@ import {
   powerUpSources,
   depowerSources,
   injectAutoSel,
+  resolveScopeOnDomElements,
   resolveEventProps
 } from './util/shortcuts'
 
@@ -136,6 +137,9 @@ const makeTraverseAction = config => (acc, val, path, root) => {
   const _isInlineCmp = isInlineComponent(val, path)
   const _isCmp = _isRegularCmp || _isInlineCmp
   const _isStreamCallback = isStreamCallback(val)
+
+  // This mutates the vdom (val)
+  resolveScopeOnDomElements(val)
 
   // This mutates the vdom (val)
   resolveEventProps(val, config.mergeFn)

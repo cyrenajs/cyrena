@@ -93,6 +93,44 @@ const EVENT_PROPS = (
   'AnimationStart|AnimationEnd|AnimationIteration|TransitionEnd|Toggle'
 ).split('|').map(ev => 'on' + ev)
 
+function isDomElement(node) {
+  return node && (
+    typeof node.type === 'string' ||
+    // Dom node with sel
+    node.type && node.type.$$typeof === Symbol.for('react.forward_ref')
+  )
+}
+
+function wrapVdom(vdom, getInlineCmp, propsToBeMoved, outerProps) {
+  const type = vdom.type
+  const children = vdom.props.children
+  const props = omit(
+    vdom.props,
+    ['children', ...propsToBeMoved]
+  )
+
+  vdom.type = Fragment
+  vdom.props = {
+    children: Object.assign(
+      getInlineCmp(type, props, children),
+      { props: outerProps }
+    )
+  }
+}
+
+export function resolveScopeOnDomElements(vdom) {
+  if (!isDomElement(vdom) || !vdom.props.scope) {
+    return
+  }
+
+  wrapVdom(
+    vdom,
+    (type, props, children) => sources => pragma(type, props, children),
+    ['scope'],
+    { scope: vdom.props.scope }
+  )
+}
+
 // Makes these shortcuts available for the following:
 //   {src => [<button>Inc</button>, { state: src.el.click.mapTo(prev => prev + 1) }]}
 //
@@ -102,13 +140,7 @@ const EVENT_PROPS = (
 // 2. A callback which maps from event to state:
 //     <button onClick={ev => prev => prev + 1}>Inc</button>
 export function resolveEventProps(vdom, mergeFn) {
-  const isOrdinaryDomElement =
-    vdom && typeof vdom.type === 'string'
-
-  const isDomElementWithSel =
-    vdom && vdom.type && vdom.type.$$typeof === Symbol.for('react.forward_ref')
-
-  if (!isOrdinaryDomElement && !isDomElementWithSel) {
+  if (!isDomElement(vdom)) {
     return
   }
 
@@ -121,14 +153,8 @@ export function resolveEventProps(vdom, mergeFn) {
   // We have to generate a unique sel, because we can't scope down the
   // generated inline component. See the comment at the bottom.
   const sel = vdom.props.sel || Symbol('eventprop-autosel')
-  const type = vdom.type
-  const children = vdom.props.children
-  const props = omit(
-    vdom.props,
-    ['key', 'children', ...Object.keys(eventProps)]
-  )
 
-  const getSinks = sources => {
+  const getInlineCmp = (type, props, children) => sources => {
     const sinks = {}
 
     forEach(eventProps, (handler, propKey) => {
@@ -153,17 +179,16 @@ export function resolveEventProps(vdom, mergeFn) {
     ]
   }
 
-  vdom.type = Fragment
-  vdom.props = {
+  wrapVdom(
+    vdom,
+    getInlineCmp,
+    Object.keys(eventProps),
     // We must prevent scoping here! Otherwise in this case the HTTP sink will
     // not get the click stream:
     // {src => [
-    //   <button onClick={...}>Remove this</button>,
+    //   <button onClick={...}>click me</button>,
     //   { HTTP: src.el.click. ... }
     // ]}
-    children: Object.assign(
-      sources => getSinks(sources),
-      { props: { noscope: true }}
-    )
-  }
+    { noscope: true }
+  )
 }

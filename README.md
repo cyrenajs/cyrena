@@ -351,6 +351,22 @@ And of course it can be a full scope object:
   // will show "{\"baz\":5}"
 ```
 
+The scope parameter can be used on a DOM element as well. In this case, the scope
+will be applied to all the other props
+(for `get` and `onChange`, see [Helpers, Shortcuts and Tips](#helpers-shortcuts-and-tips)):
+
+```jsx
+  // state: { todos: [{ text: 'todo1' }, { text: 'todo2' }, { text: 'todo3' }]}
+  ...
+  <Collection for='todos'>
+    <div>
+      <input scope='item.text' value={get()} onChange={({ target: { value } }) => () => value} />
+      &nbsp;
+      <button onClick={() => COLLECTION_DELETE}>Remove</button>
+    </div>
+  </Collection>
+```
+
 #### Automatic view scoping
 
 By default, every component in Powercycle is scoped on the view channel. If you need to lift this rule occasionally, you can provide a `noscope` prop on the component. The reason for this rule is to make string VDOM selectors safe by default. String VDOM selectors are useful, because they eliminate the necessity of boilerplate Symbol declarations. Take a look at this inline component, which is inside a `Collection` item:
