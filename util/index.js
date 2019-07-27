@@ -1,6 +1,4 @@
-import castArray from 'lodash/castArray'
-import _get from 'lodash/get'
-
+import { castArray, get as _get } from './lodash-polyfills.js'
 import { pragma, Fragment } from '../react/pragma'
 import { powercycle, CONFIG, STREAM_CALLBACK } from '../powercycle'
 
@@ -20,4 +18,4 @@ export const map = (fn, src) =>
     : Object.assign(src => map(fn, src), { [STREAM_CALLBACK]: true })
 
 export const get = (key, src) =>
-  map(state => key ? _get(state, key) : state, src)
+  map(state => key ? _get(state, key.split('.')) : state, src)

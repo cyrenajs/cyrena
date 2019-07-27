@@ -1,11 +1,4 @@
-import clone from 'lodash/clone'
-import _get from 'lodash/get'
-import set from 'lodash/set'
-import omit from 'lodash/omit'
-import mapValues from 'lodash/mapValues'
-import pick from 'lodash/pick'
-import forEach from 'lodash/forEach'
-import uniqueId from 'lodash/uniqueId'
+import { clone, uniqueId, omit, get, set, pick, forEach } from './lodash-polyfills.js'
 
 import {
   pragma,
@@ -16,15 +9,19 @@ import {
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
 export function resolveDotSeparatedScope(scope) {
-  return typeof scope !== 'string'
-    ? scope
-    : scope.split('.').length < 2 ? scope : {
-      state: {
-        get: state => _get(state, scope),
-        set: (state, childState) => clone(set(state, scope, childState))
-      },
-      '*': scope
-    }
+  if (typeof scope !== 'string') {
+    return scope
+  }
+
+  const path = scope.split('.')
+
+  return path.length === 1 ? scope : {
+    state: {
+      get: state => get(state, path),
+      set: (state, childState) => clone(set(state, path, childState))
+    },
+    '*': scope
+  }
 }
 
 const SEL_ROOT = Symbol('ROOT')
@@ -38,7 +35,7 @@ const eventsProxy = (target, prop) => {
       new Proxy(target.events(prop), {
         get: (target, prop) =>
           target[prop] ||
-          target.map(ev => _get(ev, prop))
+          target.map(ev => get(ev, prop.split('.')))
       })
   })
 }
@@ -73,7 +70,7 @@ export function injectAutoSel(vdom) {
     ? vdom
     : pragma(
         vdom.type,
-        { ...omit(vdom.props, 'key'), sel: SEL_ROOT },
+        { ...omit(['key'])(vdom.props), sel: SEL_ROOT },
         vdom.props.children
       )
 }
@@ -104,10 +101,7 @@ function isDomElement(node) {
 function wrapVdom(vdom, getInlineCmp, propsToBeMoved, outerProps) {
   const type = vdom.type
   const children = vdom.props.children
-  const props = omit(
-    vdom.props,
-    ['children', ...propsToBeMoved]
-  )
+  const props = omit(['children', ...propsToBeMoved])(vdom.props)
 
   vdom.type = Fragment
   vdom.props = {

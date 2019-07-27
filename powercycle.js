@@ -1,20 +1,10 @@
-import clone from 'lodash/clone'
-import zip from 'lodash/zip'
-import mapValues from 'lodash/fp/mapValues'
-import castArray from 'lodash/castArray'
-import mergeWith from 'lodash/mergeWith'
-import compact from 'lodash/compact'
-import omit from 'lodash/omit'
-import _get from 'lodash/get'
-import set from 'lodash/set'
-import dropRight from 'lodash/dropRight'
-import last from 'lodash/last'
-import uniqueId from 'lodash/uniqueId'
-import without from 'lodash/without'
+import {
+  clone, castArray, compact, omit, mapValues,
+  zip, mergeWith, uniqueId, get, set, without
+} from './util/lodash-polyfills.js'
 
 import xs, { Stream } from 'xstream'
 import isolate from '@cycle/isolate'
-
 export { makeDOMDriver } from '@cycle/react-dom'
 
 import {
@@ -60,7 +50,7 @@ function isElement (val) {
 function isStream (val) {
   let _isStream = val instanceof Stream
 
-  if (!_isStream && /^(?:Memory)Stream$/i.test(_get(val, 'constructor.name'))) {
+  if (!_isStream && /^(?:Memory)Stream$/i.test(get(val, ['constructor', 'name']))) {
     console.warn('Powercycle\'s stream detection failed on an object with an ' +
       'instanceof check, but it pretty much seems like a stream. It\'s probably ' +
       'a double xstream instance problem on codesandbox.')
@@ -253,7 +243,7 @@ const makePowercycle = config =>
             set(root, info.path, _val)
 
             // A way to catch error caused by frozen react vdom/props/etc. object
-            // if (_get(root, info.path) !== _val) {
+            // if (get(root, info.path) !== _val) {
             //   console.error('Can\'t write value into VDOM: ', _val, info.path)
             // }
           })
@@ -270,7 +260,7 @@ const makePowercycle = config =>
         .map(xs => xs.reduce(
           (acc, next) => mergeWith(
             acc,
-            omit(next, config.vdomProp),
+            omit([config.vdomProp])(next),
             (addition, src) => compact([...castArray(addition), src])
           ),
           {}

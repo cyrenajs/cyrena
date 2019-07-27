@@ -1,8 +1,4 @@
-import uniqueId from 'lodash/uniqueId'
-import omit from 'lodash/fp/omit'
-import clone from 'lodash/clone'
-import mapValues from 'lodash/mapValues'
-
+import { clone, uniqueId, omit, mapValues } from './lodash-polyfills.js'
 import { pragma, Fragment } from '../react/pragma'
 import { makeCollection } from '@cycle/state'
 import { powercycle, CONFIG } from '../powercycle'
@@ -61,12 +57,7 @@ export function Collection (sources) {
               ...sources,
               [outerStateName]: 1
             }))
-            .map(sources =>
-              mapValues(
-                sources,
-                (src, channel) => instances.pickMerge(channel)
-              )
-            )
+            .map(mapValues((src, channel) => instances.pickMerge(channel)))
             // ...and pickCombine the vdom channel
             .map(sinks => ({
               ...sinks,
