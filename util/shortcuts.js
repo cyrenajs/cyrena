@@ -3,6 +3,7 @@ import { clone, uniqueId, omit, get, set, pick, forEach } from './lodash-polyfil
 import {
   pragma,
   Fragment,
+  VDOM_ELEMENT_FLAG
 } from '../react/pragma'
 
 // Support dot-separated deep scopes - not sure how much of a real world usecase
@@ -91,7 +92,7 @@ const EVENT_PROPS = (
 ).split('|').map(ev => 'on' + ev)
 
 function isDomElement(node) {
-  return node && (
+  return node && node[VDOM_ELEMENT_FLAG] && (
     typeof node.type === 'string' ||
     // Dom node with sel
     node.type && node.type.$$typeof === Symbol.for('react.forward_ref')
