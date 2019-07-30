@@ -1,10 +1,10 @@
-import { clone, uniqueId, omit, mapValues } from './lodashpolyfills.js'
-import { pragma, Fragment } from '../react/pragma.js'
+import { clone, uniqueId, omit, mapValues } from '../lodashpolyfills.js'
+import { pragma, Fragment } from '../reactpragma.js'
 import { makeCollection } from '@cycle/state'
 import { powercycle, CONFIG } from '../powercycle.js'
-import { resolveDotSeparatedScope } from './shortcuts.js'
+import { resolveDotSeparatedScope } from '../shortcuts.js'
 import isolate from '@cycle/isolate'
-import { get } from './index.js'
+import { get } from '../util.js'
 
 export const COLLECTION_DELETE =
   prevState => undefined

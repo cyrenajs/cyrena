@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { pragma, Fragment } from '../react/pragma'
+import { pragma, Fragment } from '../reactpragma.js'
 import xs from 'xstream'
 import cloneDeepWith from 'lodash/cloneDeepWith'
-import clone from 'lodash/clone'
-import castArray from 'lodash/castArray'
+import { clone, castArray } from '../lodashpolyfills.js'
 
 const isReactComponent = val =>
   val && val.$$typeof === Symbol.for('react.element') &&

@@ -1,7 +1,7 @@
 import {
   clone, castArray, compact, omit, mapValues,
   zip, mergeWith, uniqueId, get, set, without
-} from './util/lodashpolyfills.js'
+} from './lodashpolyfills.js'
 
 import xs, { Stream } from 'xstream'
 import isolate from '@cycle/isolate'
@@ -14,14 +14,10 @@ import {
   isVdomChild,
   isInlineComponent,
   isStreamCallback
-} from './lib/dynamictypes.js'
+} from './dynamictypes.js'
 
-import {
-  pragma,
-  Fragment
-} from './react/pragma.js'
-
-export { pragma, Fragment } from './react/pragma.js'
+import { pragma, Fragment } from './reactpragma.js'
+export { pragma, Fragment } from './reactpragma.js'
 
 import {
   resolveShorthandOutput,
@@ -31,7 +27,7 @@ import {
   injectAutoSel,
   resolveScopeOrIfProp,
   resolveEventProps
-} from './util/shortcuts.js'
+} from './shortcuts.js'
 
 export const CONFIG = {
   vdomProp: 'react',

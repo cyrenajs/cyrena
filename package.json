@@ -2,7 +2,7 @@
   "name": "powercycle",
   "version": "0.13.1",
   "description": "Mix the simplicity of React with the power of Cycle.js",
-  "main": "powercycle.js",
+  "main": "src/powercycle.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

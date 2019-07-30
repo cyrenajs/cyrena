@@ -8,20 +8,20 @@ import {
   isElement,
   isStream,
   isDomElement
-} from '../lib/dynamictypes.js'
+} from './dynamictypes.js'
 
 import {
   pragma,
   Fragment
-} from '../react/pragma.js'
+} from './reactpragma.js'
 
 import {
   powercycle
-} from '../powercycle.js'
+} from './powercycle.js'
 
 import {
   getConditionalCmpEl
-} from './index.js'
+} from './util.js'
 
 import isolate from '@cycle/isolate'
 

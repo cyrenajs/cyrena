@@ -1,7 +1,5 @@
 import { Stream } from 'xstream'
-import {
-  get
-} from '../util/lodashpolyfills.js'
+import { get } from './lodashpolyfills.js'
 
 export const VDOM_ELEMENT_FLAG =
   Symbol('powercycle.element')
