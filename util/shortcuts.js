@@ -1,10 +1,52 @@
-import { clone, uniqueId, omit, get, set, pick, forEach } from './lodash-polyfills.js'
+import {
+  clone, uniqueId, omit, get, set, pick, forEach, castArray
+} from './lodashpolyfills.js'
+
+import {
+  VDOM_ELEMENT_FLAG,
+  isComponentNode,
+  isElement,
+  isStream,
+  isDomElement
+} from '../lib/dynamictypes.js'
 
 import {
   pragma,
-  Fragment,
-  VDOM_ELEMENT_FLAG
-} from '../react/pragma'
+  Fragment
+} from '../react/pragma.js'
+
+import {
+  powercycle
+} from '../powercycle.js'
+
+import {
+  getConditionalCmpEl
+} from './index.js'
+
+import isolate from '@cycle/isolate'
+
+// Allow shortcut return value, like: return <div>...</div>
+// or with sinks: return [<div>...</div>, { state: ... }]
+// In the shortcut form, there's no need to pass the sources object, as it's
+// the same as what the component gets from the calling part - which is not
+// true for isolation'd components of course, but as we take over the
+// cmp invocation job, including isolation, we can still intercept the
+// sources object. The shorthand return form requires at least one initial
+// powercycle() call at the top of the hierarchy, which can be achieved with
+// the withPower() utility as well
+export const resolveShorthandOutput = cmp => sources => {
+  const output = castArray(cmp(powerUpSources(sources)))
+
+  return isElement(output[0])
+    // it's a shorthand return value: vdom, eventSinks, optional sources
+    ? powercycle(
+      output[0],
+      output[1],
+      output[2] || sources
+    )
+    // it's a regular cyclejs sinks object
+    : output[0]
+}
 
 // Support dot-separated deep scopes - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
@@ -91,18 +133,10 @@ const EVENT_PROPS = (
   'AnimationStart|AnimationEnd|AnimationIteration|TransitionEnd|Toggle'
 ).split('|').map(ev => 'on' + ev)
 
-function isDomElement(node) {
-  return node && node[VDOM_ELEMENT_FLAG] && (
-    typeof node.type === 'string' ||
-    // Dom node with sel
-    node.type && node.type.$$typeof === Symbol.for('react.forward_ref')
-  )
-}
-
-function wrapVdom(vdom, getInlineCmp, propsToBeMoved, outerProps) {
+function wrapVdom(vdom, getInlineCmp, propsToRemove, outerProps) {
   const type = vdom.type
   const children = vdom.props.children
-  const props = omit(['children', ...propsToBeMoved])(vdom.props)
+  const props = omit(['children', ...propsToRemove])(vdom.props)
 
   vdom.type = Fragment
   vdom.props = {
@@ -113,17 +147,64 @@ function wrapVdom(vdom, getInlineCmp, propsToBeMoved, outerProps) {
   }
 }
 
-export function resolveScopeOnDomElements(vdom) {
-  if (!isDomElement(vdom) || !vdom.props.scope) {
+export function resolveScopeProp(vdom) {
+  if (!isElement(vdom) || !vdom.props.scope) {
     return
   }
 
   wrapVdom(
     vdom,
-    (type, props, children) => sources => pragma(type, props, children),
+    (type, props, children) =>
+      isolate(
+        resolveShorthandOutput(
+          sources => pragma(type, props, ...castArray(children))
+        ),
+        resolveDotSeparatedScope(vdom.props.scope)
+      ),
     ['scope'],
-    { scope: vdom.props.scope }
+    {}
   )
+
+  return true
+}
+
+export function resolveIfProp(vdom) {
+  if (!isElement(vdom) || !vdom.props.if) {
+    return
+  }
+
+  const cond = vdom.props.if
+
+  wrapVdom(
+    vdom,
+    (type, props, children) =>
+      sources => getConditionalCmpEl(
+        cond,
+        pragma(type, props, ...castArray(children))
+      ),
+    ['if'],
+    {}
+  )
+
+  return true
+}
+
+export function resolveScopeOrIfProp(vdom) {
+  if (!isElement(vdom)) {
+    return
+  }
+
+  const relevantProps = Object.keys(vdom.props)
+    .filter(prop => ['if', 'scope'].includes(prop))
+
+  for (let key of relevantProps) {
+    if (key === 'if' && resolveIfProp(vdom) === true) {
+      return true
+    }
+    if (key === 'scope' && resolveScopeProp(vdom) === true) {
+      return true
+    }
+  }
 }
 
 // Makes these shortcuts available for the following:
@@ -134,7 +215,7 @@ export function resolveScopeOnDomElements(vdom) {
 //     <button onClick={{ state: ev$ => ev$.mapTo(prev => prev + 1) }}>Inc</button>
 // 2. A callback which maps from event to state:
 //     <button onClick={ev => prev => prev + 1}>Inc</button>
-export function resolveEventProps(vdom, mergeFn) {
+export function resolveEventProps(vdom, { mergeFn }) {
   if (!isDomElement(vdom)) {
     return
   }
@@ -186,4 +267,6 @@ export function resolveEventProps(vdom, mergeFn) {
     // ]}
     { noscope: true }
   )
+
+  return true
 }

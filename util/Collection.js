@@ -1,10 +1,10 @@
-import { clone, uniqueId, omit, mapValues } from './lodash-polyfills.js'
-import { pragma, Fragment } from '../react/pragma'
+import { clone, uniqueId, omit, mapValues } from './lodashpolyfills.js'
+import { pragma, Fragment } from '../react/pragma.js'
 import { makeCollection } from '@cycle/state'
-import { powercycle, CONFIG } from '../powercycle'
-import { resolveDotSeparatedScope } from './shortcuts'
+import { powercycle, CONFIG } from '../powercycle.js'
+import { resolveDotSeparatedScope } from './shortcuts.js'
 import isolate from '@cycle/isolate'
-import { get } from './index'
+import { get } from './index.js'
 
 export const COLLECTION_DELETE =
   prevState => undefined
@@ -34,7 +34,10 @@ const CollectionItem = sources =>
   )
 
 export function Collection (sources) {
-  const outerStateName = sources.props.outerstate || 'outerState'
+  const noWrap = sources.props.nowrap
+  const outerStateName = sources.props.outerstate === undefined
+    ? 'outerState'
+    : sources.props.outerstate
 
   const List = [0]
     .map(() =>
@@ -74,15 +77,13 @@ export function Collection (sources) {
       })
     )
 
-    // Inject $index properties in the items. This is not optional, because we
-    // need an idKey for react vdom reasons (see CollectionItem), and we can
-    // only check for their existense here. Injecting index into sources is
-    // also not an alternative, because collection items run once, and sources
-    // does not refresh. So for now, we have to live with this O(N) expense.
+    // Wrap items in a record, holding 3 keys: item, index, collection
     .map(list =>
-      isolate(list, {
-        state: itemWrapperLens
-      })
+      noWrap
+        ? list
+        : isolate(list, {
+            state: itemWrapperLens
+          })
     )
 
     // Resolve 'for' prop. The 'for' prop has the same effect of 'scope', except
@@ -95,19 +96,23 @@ export function Collection (sources) {
     )
 
     // Add outerState to sources
-    .map(list => sources => {
-      const sinks = list({
-        // de-proxy proxyfied sources object
-        ...clone(sources),
-        // It only works with streams, donno why
-        [outerStateName]: sources.state.stream,
-      })
+    .map(list =>
+      outerStateName
+        ? sources => {
+            const sinks = list({
+              // de-proxy proxyfied sources object
+              ...clone(sources),
+              // It only works with streams, donno why
+              [outerStateName]: sources.state.stream,
+            })
 
-      return {
-        ...sinks,
-        state: CONFIG.mergeFn([sinks.state, sinks[outerStateName]])
-      }
-    })
+            return {
+              ...sinks,
+              state: CONFIG.mergeFn([sinks.state, sinks[outerStateName]])
+            }
+          }
+        : list
+    )
 
     .map(list => pragma(list, null, sources.props.children))
   [0]

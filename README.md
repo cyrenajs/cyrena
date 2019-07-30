@@ -48,6 +48,7 @@ React and Cycle.js have separate advantages and compromises, and I wanted to bri
 1. [Static VDOM composition](#static-vdom-composition)
 1. [Streams and components everywhere](#streams-and-components-everywhere)
 1. [Scopes](#scopes)
+1. [Conditionals](#conditionals)
 1. [Collection](#collection)
 1. [Event props](#event-props)
 1. [React realms](#react-realms)
@@ -379,6 +380,31 @@ By default, every component in Powercycle is scoped on the view channel. If you 
 ```
 
 [See the Todo example](https://codesandbox.io/s/2wv3r9ojqp)
+
+### Conditionals
+
+#### `If` component:
+
+Wraps the `then` or `else` value in a Fragment based on the `cond` property:
+
+```jsx
+  <If cond={state => { return ... }}
+    then={vdomOrCmp}
+    else={vdomOrCmp}
+  />
+```
+
+#### `if` prop (applies to VDOM and DOM elements):
+
+Controls the existence of the element based on the `if` condition:
+
+```jsx
+  <div if={state => { return ... }}>Remove</div>
+```
+
+When an `if` and a `scope` prop are both present among the props, their order
+defines which gets applied first.
+
 
 ### Collection
 
