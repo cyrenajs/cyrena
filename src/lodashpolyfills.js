@@ -50,3 +50,15 @@ export const pick = (obj, keys) =>
 
 export const forEach = (obj, fn) =>
   Object.entries(obj).forEach(([key, value]) => fn(value, key))
+
+// It differs from the Lodash version!
+export const defaultTo = (val, defaultValFn) =>
+    val == null ? defaultValFn() : val
+
+export const cloneDeepWith = (obj, customizer) =>
+  defaultTo(
+    customizer(obj),
+    () => Array.isArray(obj) ? obj.map(prop => cloneDeepWith(prop, customizer)) :
+      typeof obj === 'object' ? mapValues(prop => cloneDeepWith(prop, customizer))(obj) :
+      obj
+  )
