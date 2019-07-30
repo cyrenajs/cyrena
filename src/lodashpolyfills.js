@@ -1,7 +1,25 @@
+// It differs from the Lodash version!
+export const defaultTo = (val, defaultValFn) =>
+  val == null ? defaultValFn() : val
+
+export const mapValues = fn => obj =>
+  !obj || typeof obj !== 'object' ? obj : (
+    Array.isArray(obj)
+      ? obj.map(fn)
+      : Object.keys(obj).reduce(
+          (cum, key) => ({ ...cum, [key]: fn(obj[key], key) }),
+          {}
+        )
+  )
+
 export const clone = obj =>
-  Array.isArray(obj) ? [...obj] :
-  typeof obj === 'object' ? { ...obj } :
-  obj
+  mapValues(x => x)(obj)
+
+export const cloneDeepWith = (obj, customizer) =>
+  defaultTo(
+    customizer(obj),
+    () => mapValues(prop => cloneDeepWith(prop, customizer))(obj)
+  )
 
 let _uniqueId = 0
 
@@ -16,12 +34,6 @@ export const compact = array =>
 
 export const omit = keys => obj =>
   keys.reduce((cum, key) => (delete cum[key], cum), { ...obj })
-
-export const mapValues = fn => obj =>
-  Object.keys(obj).reduce(
-    (cum, key) => ({ ...cum, [key]: fn(obj[key], key) }),
-    {}
-  )
 
 export const zip = (...arrays) =>
   arrays[0].map((val, idx) => arrays.map(arr => arr[idx]))
