@@ -10,7 +10,7 @@ export function Scope (sources) {
   return pragma(Fragment, null, ...castArray(sources.props.children))
 }
 
-export function getConditionalCmpEl(cond, children) {
+export function getConditionalCmpEl(statePredicate, children) {
   return pragma(
     Collection,
     {
@@ -19,7 +19,7 @@ export function getConditionalCmpEl(cond, children) {
       outerstate: false,
       scope: {
         state: {
-          get: state => cond(state) ? [state] : [],
+          get: state => statePredicate(state) ? [state] : [],
           set: (state, inner) => inner[0]
         }
       }

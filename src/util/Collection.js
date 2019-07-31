@@ -1,10 +1,12 @@
-import { clone, uniqueId, omit, mapValues } from '../lodashpolyfills.js'
 import { pragma, Fragment } from '../reactpragma.js'
 import { makeCollection } from '@cycle/state'
 import { powercycle, CONFIG } from '../powercycle.js'
 import { resolveDotSeparatedScope } from '../shortcuts.js'
 import isolate from '@cycle/isolate'
 import { get } from '../util.js'
+import {
+  clone, uniqueId, omit, mapValues, castArray
+} from '../lodashpolyfills.js'
 
 export const COLLECTION_DELETE =
   prevState => undefined
@@ -39,7 +41,7 @@ export function Collection (sources) {
     ? 'outerState'
     : sources.props.outerstate
 
-  const List = [0]
+  const listSinks = [0]
     .map(() =>
       makeCollection({
         item: CollectionItem,
@@ -48,18 +50,19 @@ export function Collection (sources) {
         // serves as an isolation base, but we already have isolation on the items...
         // itemKey: (childState, index) => String(index),
 
-        // channel: sources.props.channel || 'state',
+        channel: sources.props.channel || 'state',
 
         itemScope: sources.props.itemscope || (key => key),
 
         collectSinks: instances =>
+          // We collect all the channels (keys) from the sources as a base for
+          // pickMerge
           [clone(sources)]
-            // pickMerge all channels found in sources except props and key...
-            .map(omit(['props', 'key']))
-            .map(sources => ({
-              ...sources,
-              [outerStateName]: 1
-            }))
+            // 'props' is added to sources in powercycle(), but it's not a
+            // channel
+            .map(omit(['props']))
+            // Add the outerstate key (value doesn't matter)
+            .map(sources => ({ ...sources, [outerStateName]: 1 }))
             .map(mapValues((src, channel) => instances.pickMerge(channel)))
             // ...and pickCombine the vdom channel
             .map(sinks => ({
@@ -114,8 +117,8 @@ export function Collection (sources) {
         : list
     )
 
-    .map(list => pragma(list, null, sources.props.children))
+    .map(list => pragma(list, null, ...castArray(sources.props.children)))
   [0]
 
-  return List
+  return listSinks
 }
