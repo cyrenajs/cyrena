@@ -307,7 +307,7 @@ Powercycle collects streams and components from the VDOM according to the follow
 
 ### Scopes
 
-Any VDOM component can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given component. As components act as boundaries in the Powercycle traversal, a scope will not just affect the component, but the complete sub-VDOM under it as well.
+Any VDOM node can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given element. As components act as boundaries in the Powercycle traversal, a scope will not just affect the component, but the complete sub-VDOM under it as well.
 
 ```jsx
 function ShowState(sources) {
@@ -352,9 +352,11 @@ And of course it can be a full scope object:
   // will show "{\"baz\":5}"
 ```
 
-The scope parameter can be used on a DOM element as well. In this case, the scope
+The `scope` prop can be used on a DOM element as well. In this case, the scope
 will be applied to all the other props
-(for `get` and `onChange`, see [Helpers, Shortcuts and Tips](#helpers-shortcuts-and-tips)):
+(for `get` and `onChange`, see [Helpers, Shortcuts and Tips](#helpers-shortcuts-and-tips)).
+If there's both an `if` and `scope` prop on the element, their precedence will be
+defined by their definition order on the node!
 
 ```jsx
   // state: { todos: [{ text: 'todo1' }, { text: 'todo2' }, { text: 'todo3' }]}
@@ -385,25 +387,36 @@ By default, every component in Powercycle is scoped on the view channel. If you 
 
 #### `If` component:
 
-Wraps the `then` or `else` value in a Fragment based on the `cond` property:
+Wraps the `then` or `else` value in a Fragment based on the `cond` property. The
+`cond` property can be either a stream or a stream callback. `then` and `else` values
+can any vdom child.
 
 ```jsx
-  <If cond={state => { return ... }}
-    then={vdomOrCmp}
-    else={vdomOrCmp}
+  <If cond={condition}
+    then={value}
+    else={otherValue}
   />
 ```
 
-#### `if` prop (applies to VDOM and DOM elements):
+As an alternative way of defining the `then` branch, instead of using the `then` prop,
+you can define the `then` children as the vdom subtree of the If component:
+
+```jsx
+  <If cond={condition} [else={...}]>
+    {`then` value}
+  />
+```
+
+#### `if` prop (applies to Component and DOM elements):
 
 Controls the existence of the element based on the `if` condition:
 
 ```jsx
-  <div if={state => { return ... }}>Remove</div>
+  <div if={condition}>Remove</div>
 ```
 
-When an `if` and a `scope` prop are both present among the props, their order
-defines which gets applied first.
+If there's both an `if` and `scope` prop on the element, their precedence will be
+defined by their definition order on the node!
 
 
 ### Collection
