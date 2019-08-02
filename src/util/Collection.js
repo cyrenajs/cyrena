@@ -5,7 +5,7 @@ import { resolveDotSeparatedScope } from '../shortcuts.js'
 import isolate from '@cycle/isolate'
 import { get } from '../util.js'
 import {
-  clone, uniqueId, omit, mapValues, castArray
+  clone, uniqueId, omit, mapValues, castArray, assign
 } from '../lodashpolyfills.js'
 
 export const COLLECTION_DELETE =
@@ -24,59 +24,57 @@ const itemWrapperLens = {
   }
 }
 
-const CollectionItem = sources =>
+export const CollectionItem = sources =>
   powercycle(
-    pragma(
-      Fragment,
-      null,
-      sources.props.children
-    ),
+    pragma(Fragment, null, ...castArray(sources.props.children)),
     null,
     sources
   )
+
+// Collect all the channels (keys) from the sources as a base for pickMerge
+export const collectSinksBasedOnSource = sources => instances => {
+  // Make sure that the sources object is de-proxyfied
+  return [clone(sources)]
+    // 'props' is a special source prop, and not a channel
+    .map(omit(['props']))
+    // pickMerge the event channels based on the sources keys
+    .map(mapValues((src, channel) => instances.pickMerge(channel)))
+    // ...and pickCombine the vdom channel
+    .map(sinks => ({
+      ...sinks,
+      [CONFIG.vdomProp]: instances
+        .pickCombine(CONFIG.vdomProp)
+        .map(itemVdoms =>
+          itemVdoms.map((vdom, idx) => ({
+            ...vdom,
+            key: String(idx)
+          }))
+        )
+    }))
+  [0]
+}
 
 export function Collection (sources) {
   const noWrap = sources.props.nowrap
   const outerStateName = sources.props.outerstate === undefined
     ? 'outerState'
     : sources.props.outerstate
+  const channel = sources.props.channel || 'state'
 
   const listSinks = [0]
     .map(() =>
       makeCollection({
         item: CollectionItem,
-
         // I'm not sure what it's for. From cycle's source, it seems like that it
         // serves as an isolation base, but we already have isolation on the items...
         // itemKey: (childState, index) => String(index),
-
-        channel: sources.props.channel || 'state',
-
+        channel,
         itemScope: sources.props.itemscope || (key => key),
-
-        collectSinks: instances =>
-          // We collect all the channels (keys) from the sources as a base for
-          // pickMerge
-          [clone(sources)]
-            // 'props' is added to sources in powercycle(), but it's not a
-            // channel
-            .map(omit(['props']))
-            // Add the outerstate key (value doesn't matter)
-            .map(sources => ({ ...sources, [outerStateName]: 1 }))
-            .map(mapValues((src, channel) => instances.pickMerge(channel)))
-            // ...and pickCombine the vdom channel
-            .map(sinks => ({
-              ...sinks,
-              [CONFIG.vdomProp]: instances
-                .pickCombine(CONFIG.vdomProp)
-                .map(itemVdoms =>
-                  itemVdoms.map((vdom, idx) => ({
-                    ...vdom,
-                    key: String(idx)
-                  }))
-                )
-            }))
-          [0]
+        collectSinks: collectSinksBasedOnSource({
+          ...sources,
+          // Value doesn't matter here, just add the outerstate key for pickMerge
+          ...outerStateName && { [outerStateName]: 1 }
+        })
       })
     )
 
@@ -85,7 +83,7 @@ export function Collection (sources) {
       noWrap
         ? list
         : isolate(list, {
-            state: itemWrapperLens
+            [channel]: itemWrapperLens
           })
     )
 
@@ -103,15 +101,14 @@ export function Collection (sources) {
       outerStateName
         ? sources => {
             const sinks = list({
-              // de-proxy proxyfied sources object
-              ...clone(sources),
+              ...sources,
               // It only works with streams, donno why
-              [outerStateName]: sources.state.stream,
+              [outerStateName]: sources[channel].stream,
             })
 
             return {
               ...sinks,
-              state: CONFIG.mergeFn([sinks.state, sinks[outerStateName]])
+              [channel]: CONFIG.mergeFn([sinks[channel], sinks[outerStateName]])
             }
           }
         : list

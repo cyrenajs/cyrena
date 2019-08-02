@@ -2,8 +2,11 @@ import {
   clone, uniqueId, omit, get, set, pick, forEach, castArray
 } from './lodashpolyfills.js'
 
+import xs from 'xstream'
+
 import {
   VDOM_ELEMENT_FLAG,
+  STREAM_CALLBACK,
   isComponentNode,
   isElement,
   isStream,
@@ -20,7 +23,7 @@ import {
 } from './powercycle.js'
 
 import {
-  getConditionalCmpEl
+  getConditionalCmp
 } from './util.js'
 
 import isolate from '@cycle/isolate'
@@ -178,10 +181,11 @@ export function resolveIfProp(vdom) {
   wrapVdom(
     vdom,
     (type, props, children) =>
-      sources => getConditionalCmpEl(
-        cond,
-        pragma(type, props, ...castArray(children))
-      ),
+      sources =>
+        getConditionalCmp(
+          cond[STREAM_CALLBACK] ? cond(sources) : cond,
+          pragma(type, props, ...castArray(children))
+        )(sources),
     ['if'],
     {}
   )

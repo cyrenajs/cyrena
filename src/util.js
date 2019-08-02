@@ -1,8 +1,9 @@
-import { castArray, get as _get } from './lodashpolyfills.js'
+import { castArray, get as _get, uniqueId } from './lodashpolyfills.js'
 import { pragma, Fragment } from './reactpragma.js'
 import { powercycle, CONFIG } from './powercycle.js'
-import { Collection } from './util/Collection.js'
 import { STREAM_CALLBACK } from './dynamictypes.js'
+import { collectSinksBasedOnSource } from './util/Collection.js'
+import { makeCollection } from '@cycle/state'
 
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
@@ -10,32 +11,44 @@ export function Scope (sources) {
   return pragma(Fragment, null, ...castArray(sources.props.children))
 }
 
-export function getConditionalCmpEl(statePredicate, children) {
-  return pragma(
-    Collection,
-    {
-      itemscope: () => null,
-      nowrap: true,
-      outerstate: false,
-      scope: {
-        state: {
-          get: state => statePredicate(state) ? [state] : [],
-          set: (state, inner) => inner[0]
-        }
-      }
-    },
-    ...castArray(children)
-  )
+export function getConditionalCmp (cond$, children) {
+  const conditionStateChannel = '$$$cond' + uniqueId()
+
+  return sources => {
+    const collection = makeCollection({
+      item: sources => powercycle(
+        pragma(Fragment, null, ...castArray(children)),
+        null,
+        sources
+      ),
+      itemScope: () => ({ '*': null }),
+      channel: conditionStateChannel,
+      collectSinks: collectSinksBasedOnSource(sources)
+    })
+
+    return collection({
+      ...sources,
+      [conditionStateChannel]: { stream: cond$.map(cond => cond ? [{}] : []) }
+    })
+  }
 }
 
-export function If ({ props }) {
+export function If (sources) {
+  const cond$ = sources.props.cond[STREAM_CALLBACK]
+    ? sources.props.cond(sources)
+    : sources.props.cond
+
+  const thenVdom = sources.props.then || sources.props.children
+  const elseVdom = sources.props.else
+
   return pragma(
     Fragment,
     null,
-    getConditionalCmpEl(props.cond, props.then || props.children),
-    getConditionalCmpEl(state => !props.cond(state), props.else)
+    getConditionalCmp(cond$, thenVdom),
+    getConditionalCmp(cond$.map(cond => !cond), elseVdom)
   )
 }
+
 
 // Helper function to easily access state parts in the vdom.
 // If src is provided, it'll use that as the sources object and return
