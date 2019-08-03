@@ -54,10 +54,29 @@ export function If (sources) {
 // If src is provided, it'll use that as the sources object and return
 // with a stream. If it's omitted, it will instead create an inline
 // component
-export const map = (fn, src) =>
-  src
-    ? src.state.stream.map(fn)
-    : Object.assign(src => map(fn, src), { [STREAM_CALLBACK]: true })
+export const $map = (fn, stream) =>
+  stream
+    ? stream.map(fn)
+    : Object.assign(
+        src => map(fn, src.state.stream),
+        { [STREAM_CALLBACK]: true }
+      )
 
-export const get = (key, src) =>
-  map(state => key ? _get(state, key.split('.')) : state, src)
+export const $get = (key, stream) =>
+  $map(
+    streamVal => key
+      ? _get(streamVal, key.split('.'))
+      : streamVal,
+    stream
+  )
+
+export const $if = ($cond, $then, $else) =>
+  $cond[STREAM_CALLBACK]
+    ? Object.assign(
+        src => $map(cond => cond ? $then : $else, $cond(src)),
+        { [STREAM_CALLBACK]: true }
+      )
+    : $map(cond => cond ? $then : $else, $cond)
+
+export const map = $map
+export const get = $get
