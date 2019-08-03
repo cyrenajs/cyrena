@@ -276,20 +276,34 @@ export function resolveEventProps(vdom, { mergeFn }) {
   return true
 }
 
-const GET_$_PROXY_PATH = Symbol('powercycle.getProxyPath')
+// Allows the following shortcuts:
+// $ --> $get()
+// $.foo.bar --> $get('foo.bar')
+// $(stream).foo.bar --> $get('foo.bar', stream)
+const $_PROXY_GET_PATH = Symbol('powercycle.$ProxyGetPath')
+const $_PROXY_BASE_STREAM = Symbol('powercycle.$ProxyBaseStream')
 
-export const $ = (function $$ (path = []) {
-  return new Proxy({ [GET_$_PROXY_PATH]: path }, {
-    get(target, prop) {
-      return prop === GET_$_PROXY_PATH
+export const $ = (function $$ (path = [], baseStream = undefined) {
+  const $proxyTarget = Object.assign(
+    function () {},
+    { [$_PROXY_GET_PATH]: path,
+      [$_PROXY_BASE_STREAM]: baseStream }
+  )
+
+  return new Proxy($proxyTarget, {
+    get (target, prop) {
+      return prop === $_PROXY_GET_PATH || prop === $_PROXY_BASE_STREAM
         ? target[prop]
-        : $$([...target[GET_$_PROXY_PATH], prop])
+        : $$([...path, prop], baseStream)
+    },
+    apply (target, thisArg, args) {
+      return $$(path, args[0])
     }
   })
 })()
 
 export function resolve$Proxy (val) {
-  return val && typeof val === 'object' && val[GET_$_PROXY_PATH]
-    ? $get(val[GET_$_PROXY_PATH].join('.'))
+  return val && val[$_PROXY_GET_PATH]
+    ? $get(val[$_PROXY_GET_PATH].join('.'), val[$_PROXY_BASE_STREAM])
     : val
 }
