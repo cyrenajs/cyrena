@@ -26,7 +26,8 @@ import {
   depowerSources,
   injectAutoSel,
   resolveScopeOrIfProp,
-  resolveEventProps
+  resolveEventProps,
+  resolve$Proxy
 } from './shortcuts.js'
 
 export const CONFIG = {
@@ -58,7 +59,9 @@ function handleAutoScope(cmp, props = {}, vdomProp) {
       })
 }
 
-const makeTraverseAction = config => (acc, val, path, root) => {
+const makeTraverseAction = config => (acc, __val, path, root) => {
+  const val = resolve$Proxy(__val)
+
   const _isStream = isStream(val)
   const _isRegularCmp = isComponentNode(val)
   const _isInlineCmp = isInlineComponent(val, path)
@@ -215,7 +218,6 @@ const makePowercycle = config =>
   }
 
 export const powercycle = makePowercycle(CONFIG)
-export const power = powercycle
 export const component = powercycle
 
 // Wrapper for any cycle component for the convenience of shorthand

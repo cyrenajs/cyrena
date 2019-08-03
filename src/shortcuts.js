@@ -23,7 +23,8 @@ import {
 } from './powercycle.js'
 
 import {
-  getConditionalCmp
+  getConditionalCmp,
+  $get
 } from './util.js'
 
 import isolate from '@cycle/isolate'
@@ -273,4 +274,22 @@ export function resolveEventProps(vdom, { mergeFn }) {
   )
 
   return true
+}
+
+const GET_$_PROXY_PATH = Symbol('powercycle.getProxyPath')
+
+export const $ = (function $$ (path = []) {
+  return new Proxy({ [GET_$_PROXY_PATH]: path }, {
+    get(target, prop) {
+      return prop === GET_$_PROXY_PATH
+        ? target[prop]
+        : $$([...target[GET_$_PROXY_PATH], prop])
+    }
+  })
+})()
+
+export function resolve$Proxy (val) {
+  return val && typeof val === 'object' && val[GET_$_PROXY_PATH]
+    ? $get(val[GET_$_PROXY_PATH].join('.'))
+    : val
 }
