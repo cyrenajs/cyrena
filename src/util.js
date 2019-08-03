@@ -4,6 +4,7 @@ import { powercycle, CONFIG } from './powercycle.js'
 import { STREAM_CALLBACK } from './dynamictypes.js'
 import { collectSinksBasedOnSource } from './util/Collection.js'
 import { makeCollection } from '@cycle/state'
+import { resolve$Proxy } from './shortcuts.js'
 
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
@@ -70,13 +71,16 @@ export const $get = (key, stream) =>
     stream
   )
 
-export const $if = ($cond, $then, $else) =>
-  $cond[STREAM_CALLBACK]
+export const $if = ($$cond, $then, $else) => {
+  const $cond = resolve$Proxy($$cond)
+
+  return $cond[STREAM_CALLBACK]
     ? Object.assign(
         src => $map(cond => cond ? $then : $else, $cond(src)),
         { [STREAM_CALLBACK]: true }
       )
     : $map(cond => cond ? $then : $else, $cond)
+}
 
 export const map = $map
 export const get = $get
