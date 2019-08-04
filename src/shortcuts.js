@@ -300,7 +300,9 @@ export const $ = (function $$ (path = [], baseStream = undefined) {
         : $$([...path, prop], baseStream)
     },
     apply (target, thisArg, args) {
-      return $$(path, args[0])
+      return args[0][$_PROXY_GET_PATH] // already a proxy?
+        ? args[0]
+        : $$(path, args[0])
     }
   })
 })()
