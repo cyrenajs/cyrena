@@ -16,7 +16,7 @@ See the examples below:
 * [Todo List - simple](https://codesandbox.io/s/n7m44yjo0j)
 * [Todo List - advanced](https://codesandbox.io/s/2wv3r9ojqp)
 * [React component with Cycle state](https://codesandbox.io/s/74lnv0wy3j)
-* [Tic Tac Toe](https://codesandbox.io/s/tic-tac-toe-powercycle-filix)
+* [Tic Tac Toe](https://github.com/sarimarton/tic-tac-toe-powercycle)
 * [A full showcase](https://codesandbox.io/s/github/sarimarton/powercycle-showcase)
 
 ## Motivation
