@@ -39,7 +39,7 @@ export function getConditionalCmp (cond$, children) {
 }
 
 export function If (sources) {
-  const cond$ = resolveStreamCallback(sources.props.cond, sources)
+  const cond$ = resolveStreamCallback(resolve$Proxy(sources.props.cond), sources)
 
   const thenVdom = sources.props.then || sources.props.children
   const elseVdom = sources.props.else
