@@ -59,3 +59,11 @@ export function isStreamCallback (val) {
   return typeof val === 'function' &&
     val[STREAM_CALLBACK]
 }
+
+export function resolveStreamCallback (value, src) {
+  return isStreamCallback(value) ? value(src) : value
+}
+
+export function wrapInStreamCallback (fn) {
+  return Object.assign(fn, { [STREAM_CALLBACK]: true })
+}

@@ -6,11 +6,12 @@ import xs from 'xstream'
 
 import {
   VDOM_ELEMENT_FLAG,
-  STREAM_CALLBACK,
   isComponentNode,
   isElement,
   isStream,
-  isDomElement
+  isDomElement,
+  isStreamCallback,
+  resolveStreamCallback
 } from './dynamictypes.js'
 
 import {
@@ -184,7 +185,7 @@ export function resolveIfProp(vdom) {
     (type, props, children) =>
       sources =>
         getConditionalCmp(
-          cond[STREAM_CALLBACK] ? cond(sources) : cond,
+          resolveStreamCallback(cond, sources),
           pragma(type, props, ...castArray(children))
         )(sources),
     ['if'],

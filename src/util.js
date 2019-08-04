@@ -1,10 +1,14 @@
 import { castArray, get as _get, uniqueId } from './lodashpolyfills.js'
 import { pragma, Fragment } from './reactpragma.js'
 import { powercycle, CONFIG } from './powercycle.js'
-import { STREAM_CALLBACK } from './dynamictypes.js'
 import { collectSinksBasedOnSource } from './util/Collection.js'
 import { makeCollection } from '@cycle/state'
 import { resolve$Proxy } from './shortcuts.js'
+import {
+  isStreamCallback,
+  resolveStreamCallback,
+  wrapInStreamCallback
+} from './dynamictypes.js'
 
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
@@ -35,9 +39,7 @@ export function getConditionalCmp (cond$, children) {
 }
 
 export function If (sources) {
-  const cond$ = sources.props.cond[STREAM_CALLBACK]
-    ? sources.props.cond(sources)
-    : sources.props.cond
+  const cond$ = resolveStreamCallback(sources.props.cond, sources)
 
   const thenVdom = sources.props.then || sources.props.children
   const elseVdom = sources.props.else
@@ -50,34 +52,34 @@ export function If (sources) {
   )
 }
 
-
 // Helper function to easily access state parts in the vdom.
 // If src is provided, it'll use that as the sources object and return
 // with a stream. If it's omitted, it will instead create an inline
 // component
-export const $map = (fn, stream) =>
-  stream
-    ? stream.map(fn)
-    : Object.assign(
-        src => map(fn, src.state.stream),
-        { [STREAM_CALLBACK]: true }
-      )
+export const $map = (fn, streamOrCallbackOrProxy) => {
+  const streamOrCallback = resolve$Proxy(streamOrCallbackOrProxy)
 
-export const $get = (key, stream) =>
+  return isStreamCallback(streamOrCallback)
+    ? wrapInStreamCallback(src => map(fn, streamOrCallback(src)))
+    : streamOrCallback // stream
+      ? streamOrCallback.map(fn)
+      : wrapInStreamCallback(src => map(fn, src.state.stream))
+}
+
+export const $get = (key, streamOrCallbackOrProxy) =>
   $map(
     streamVal => key
       ? _get(streamVal, key.split('.'))
       : streamVal,
-    stream
+    streamOrCallbackOrProxy
   )
 
 export const $if = ($$cond, $then, $else) => {
   const $cond = resolve$Proxy($$cond)
 
-  return $cond[STREAM_CALLBACK]
-    ? Object.assign(
-        src => $map(cond => cond ? $then : $else, $cond(src)),
-        { [STREAM_CALLBACK]: true }
+  return isStreamCallback($cond)
+    ? wrapInStreamCallback(
+        src => $map(cond => cond ? $then : $else, $cond(src))
       )
     : $map(cond => cond ? $then : $else, $cond)
 }
