@@ -47,6 +47,19 @@ export const mergeWith = (obj, src, customizer) =>
 export const get = (obj, path) =>
   path.reduce((cum, key) => (cum || {})[key], obj)
 
+// This is not lodash
+export function clonePath (obj, path) {
+  let root = clone(obj)
+  let node = root
+
+  for (let i = 0; i < path.length; i++) {
+    node[path[i]] = clone(node[path[i]])
+    node = node[path[i]]
+  }
+
+  return root
+}
+
 export const set = (obj, path, val) =>
   Object.assign(obj, {
     [path[0]]: path.length > 1

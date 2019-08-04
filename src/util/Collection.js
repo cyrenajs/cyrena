@@ -1,7 +1,7 @@
 import { pragma, Fragment } from '../reactpragma.js'
 import { makeCollection } from '@cycle/state'
 import { powercycle, CONFIG } from '../powercycle.js'
-import { resolveDotSeparatedScope } from '../shortcuts.js'
+import { getPathLens } from '../shortcuts.js'
 import isolate from '@cycle/isolate'
 import { get } from '../util.js'
 import {
@@ -41,6 +41,11 @@ export const collectSinksBasedOnSource = sources => instances => {
   [0]
 }
 
+const identityLens = {
+  get: state => state,
+  set: (state, childState) => childState
+}
+
 export function Collection (sources) {
   const outerStateName = sources.props.outerstate === undefined
     ? 'outerState'
@@ -48,8 +53,8 @@ export function Collection (sources) {
   const channel = sources.props.channel || 'state'
 
   const forLens = !sources.props.for
-    ? { get: state => state, set: (state, childState) => childState }
-    : resolveDotSeparatedScope(sources.props.for).state
+    ? identityLens
+    : getPathLens(sources.props.for)
 
   const collectionCmp = makeCollection({
     item: CollectionItem,

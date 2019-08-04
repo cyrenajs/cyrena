@@ -53,23 +53,25 @@ export const resolveShorthandOutput = cmp => sources => {
     : output[0]
 }
 
+export function getPathLens(path) {
+  const pathArr = path.split('.')
+
+  return {
+    get: state => get(state, pathArr),
+    set: (state, childState) => clone(set(state, pathArr, childState))
+  }
+}
+
 // Support dot-separated deep scopes - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
-export function resolveDotSeparatedScope(scope) {
-  if (typeof scope !== 'string') {
-    return scope
-  }
-
-  const path = scope.split('.')
-
-  return path.length === 1 ? scope : {
-    state: {
-      get: state => get(state, path),
-      set: (state, childState) => clone(set(state, path, childState))
-    },
-    '*': scope
-  }
+export function resolvePathScope(scope) {
+  return typeof scope !== 'string'
+    ? scope
+    : {
+      state: getPathLens(scope),
+      '*': scope
+    }
 }
 
 const SEL_ROOT = Symbol('ROOT')
@@ -164,7 +166,7 @@ export function resolveScopeProp(vdom) {
         resolveShorthandOutput(
           sources => pragma(type, props, ...castArray(children))
         ),
-        resolveDotSeparatedScope(vdom.props.scope)
+        resolvePathScope(vdom.props.scope)
       ),
     ['scope'],
     {}

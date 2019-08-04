@@ -1,6 +1,7 @@
 import {
   clone, castArray, compact, omit, mapValues,
-  zip, mergeWith, uniqueId, get, set, without
+  zip, mergeWith, uniqueId, get, set, without,
+  clonePath
 } from './lodashpolyfills.js'
 
 import xs, { Stream } from 'xstream'
@@ -21,7 +22,7 @@ export { pragma, Fragment } from './reactpragma.js'
 
 import {
   resolveShorthandOutput,
-  resolveDotSeparatedScope,
+  resolvePathScope,
   powerUpSources,
   depowerSources,
   injectAutoSel,
@@ -119,17 +120,6 @@ function getCmpAutoKey (cmpId, path) {
     without(path, 'props', 'children').join('.')
 }
 
-function clonePath (path, vdom) {
-  let node = vdom
-
-  for (let i = 0; i < path.length; i++) {
-    node[path[i]] = clone(node[path[i]])
-    node = node[path[i]]
-  }
-
-  return vdom
-}
-
 const makePowercycle = config =>
   function powercycle (vdom, eventSinks, sources) {
     // Wrap it in an array to make path-based substitution work with root streams.
@@ -181,9 +171,7 @@ const makePowercycle = config =>
             // 2. change object references to avoid reconciliation bailouts, e.g.
             // at react/packages/react-reconciler/src/ReactFiberBeginWork.js:2387
             // oldProps.children === newProps.children
-            root = clonePath(info.path, root)
-
-            set(root, info.path, _val)
+            root = set(clonePath(root, info.path), info.path, _val)
 
             // A way to catch error caused by frozen react vdom/props/etc. object
             // if (get(root, info.path) !== _val) {
