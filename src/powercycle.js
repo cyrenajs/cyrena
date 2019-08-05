@@ -14,7 +14,8 @@ import {
   isStream,
   isVdomChild,
   isInlineComponent,
-  isStreamCallback
+  isStreamCallback,
+  resolveStreamCallback
 } from './dynamictypes.js'
 
 import { pragma, Fragment } from './reactpragma.js'
@@ -104,9 +105,7 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
 
   const sinks = _isCmp && cmp(sources)
 
-  const _val = _isStreamCallback
-    ? val(sources)
-    : val
+  const _val = resolveStreamCallback(val, sources)
 
   acc.push({ val: _val, path, isCmp: _isCmp, sinks })
 

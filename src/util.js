@@ -3,8 +3,13 @@ import { pragma, Fragment } from './reactpragma.js'
 import { powercycle, CONFIG } from './powercycle.js'
 import { collectSinksBasedOnSource } from './util/Collection.js'
 import { makeCollection } from '@cycle/state'
-import { resolve$Proxy } from './shortcuts.js'
+
 import {
+  resolve$Proxy
+} from './shortcuts.js'
+
+import {
+  isStream,
   isStreamCallback,
   resolveStreamCallback,
   wrapInStreamCallback
@@ -53,35 +58,40 @@ export function If (sources) {
 }
 
 // Helper function to easily access state parts in the vdom.
-// If src is provided, it'll use that as the sources object and return
-// with a stream. If it's omitted, it will instead create an inline
-// component
-export const $map = (fn, streamOrCallbackOrProxy) => {
-  const streamOrCallback = resolve$Proxy(streamOrCallbackOrProxy)
+// src can be any of these 4:
+// - stream
+// - stream callback
+// - $ proxy
+// - sources object
+// If src is a sources object, then the mapper will occur on
+// src.state.stream
+export const $map = (fn, src) => {
+  const _src = resolve$Proxy(src)
 
-  return isStreamCallback(streamOrCallback)
-    ? wrapInStreamCallback(src => map(fn, streamOrCallback(src)))
-    : streamOrCallback // stream
-      ? streamOrCallback.map(fn)
-      : wrapInStreamCallback(src => map(fn, src.state.stream))
+  return (
+    isStream(_src)
+      ? _src.map(fn) :
+
+    isStreamCallback(_src)
+      ? wrapInStreamCallback(src =>
+          $map(fn, resolveStreamCallback(_src, src))
+        ) :
+
+    _src
+      ? _src.state.stream.map(fn) :
+
+    wrapInStreamCallback(src => $map(fn, src))
+  )
 }
 
-export const $get = (key, streamOrCallbackOrProxy) =>
+export const $get = (key, src) =>
   $map(
-    streamVal => key
-      ? _get(streamVal, key.split('.'))
-      : streamVal,
-    streamOrCallbackOrProxy
+    streamVal => key ? _get(streamVal, key.split('.')) : streamVal,
+    src
   )
 
-export const $if = ($$cond, $then, $else) => {
-  const $cond = resolve$Proxy($$cond)
-
-  return isStreamCallback($cond)
-    ? wrapInStreamCallback(
-        src => $map(cond => cond ? $then : $else, $cond(src))
-      )
-    : $map(cond => cond ? $then : $else, $cond)
+export const $if = ($cond, $then, $else) => {
+  return $map(cond => cond ? $then : $else, $cond)
 }
 
 export const map = $map

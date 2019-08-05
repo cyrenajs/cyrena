@@ -6,7 +6,9 @@ import xs from 'xstream'
 
 import {
   VDOM_ELEMENT_FLAG,
-  isComponentNode,
+  $_PROXY_GET_PATH,
+  $_PROXY_BASE_STREAM,
+  typeSymbols,
   isElement,
   isStream,
   isDomElement,
@@ -76,7 +78,7 @@ export function resolvePathScope(scope) {
 
 const SEL_ROOT = Symbol('ROOT')
 
-const eventsProxy = (target, prop) => {
+function eventsProxy (target, prop) {
   const selector = typeof prop === 'symbol' && Symbol.keyFor(prop) || prop
 
   return new Proxy(target.react.select(selector), {
@@ -95,18 +97,22 @@ const eventsProxy = (target, prop) => {
 //   sources.sel.input.events('change').map(ev => ev.target.value)
 //   sources.sel.input.change.map(ev => ev.target.value)
 //   sources.sel.input.change['target.value']
+//   sources[input].change['target.value']
 // And for root elements:
 //   sources.el.change['target.value']
 export function powerUpSources (sources) {
   return new Proxy(sources, {
     get: (target, prop) => {
-      return target[prop] ||
-        prop === 'el' && eventsProxy(target, SEL_ROOT) ||
-        prop === 'sel' && new Proxy({}, {
+      return (
+        target[prop] ? target[prop] :
+        typeSymbols.includes(prop) ? target[prop] :
+        prop === 'el' ? eventsProxy(target, SEL_ROOT) :
+        prop === 'sel' ? new Proxy({}, {
           get: (dummy, prop) => eventsProxy(target, prop)
-        }) ||
-        typeof prop === 'symbol' && eventsProxy(target, prop) ||
+        }) :
+        typeof prop === 'symbol' ? eventsProxy(target, prop) :
         undefined
+      )
     }
   })
 }
@@ -283,19 +289,16 @@ export function resolveEventProps(vdom, { mergeFn }) {
 // $ --> $get()
 // $.foo.bar --> $get('foo.bar')
 // $(stream).foo.bar --> $get('foo.bar', stream)
-const $_PROXY_GET_PATH = Symbol('powercycle.$ProxyGetPath')
-const $_PROXY_BASE_STREAM = Symbol('powercycle.$ProxyBaseStream')
-
 export const $ = (function $$ (path = [], baseStream = undefined) {
   const $proxyTarget = Object.assign(
-    function () {},
+    function () {}, // make it appliable
     { [$_PROXY_GET_PATH]: path,
       [$_PROXY_BASE_STREAM]: baseStream }
   )
 
   return new Proxy($proxyTarget, {
     get (target, prop) {
-      return prop === $_PROXY_GET_PATH || prop === $_PROXY_BASE_STREAM
+      return typeof prop === 'symbol' // $_PROXY_GET_PATH || prop === $_PROXY_BASE_STREAM
         ? target[prop]
         : $$([...path, prop], baseStream)
     },

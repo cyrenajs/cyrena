@@ -1,11 +1,21 @@
 import { Stream } from 'xstream'
 import { get } from './lodashpolyfills.js'
 
-export const VDOM_ELEMENT_FLAG =
-  Symbol('powercycle.element')
+export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
+export const STREAM_CALLBACK = Symbol('powercycle.streamCallback')
+export const $_PROXY_GET_PATH = Symbol('powercycle.$ProxyGetPath')
+export const $_PROXY_BASE_STREAM = Symbol('powercycle.$ProxyBaseStream')
 
-export const STREAM_CALLBACK =
-  Symbol('powercycle.streamCallback')
+// This is only needed to allow such shortcuts with shortcuts/powerUpSources:
+// sources[inc].click
+// The value of this seems borderline. We can later remove this support and
+// with it this list.
+export const typeSymbols = [
+  VDOM_ELEMENT_FLAG,
+  STREAM_CALLBACK,
+  $_PROXY_GET_PATH,
+  $_PROXY_BASE_STREAM
+]
 
 export function isComponentNode (node) {
   return node &&
@@ -60,8 +70,13 @@ export function isStreamCallback (val) {
     val[STREAM_CALLBACK]
 }
 
+// It could be recursive for safety, assuming that there might be cases
+// with nested stream callback wrapping, but I couldn't produce so far an
+// example, where this non-recursive version didn't work well.
 export function resolveStreamCallback (value, src) {
-  return isStreamCallback(value) ? value(src) : value
+  return isStreamCallback(value)
+    ? value(src) // resolveStreamCallback(value(src), src)
+    : value
 }
 
 export function wrapInStreamCallback (fn) {
