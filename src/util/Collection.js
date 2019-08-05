@@ -1,8 +1,7 @@
 import { pragma, Fragment } from '../reactpragma.js'
 import { makeCollection } from '@cycle/state'
-import { powercycle, CONFIG } from '../powercycle.js'
+import { powercycle, CONFIG, isolate } from '../powercycle.js'
 import { getPathLens } from '../shortcuts.js'
-import isolate from '@cycle/isolate'
 import { get } from '../util.js'
 import {
   clone, uniqueId, omit, mapValues, castArray, assign

@@ -2,9 +2,10 @@ import { Stream } from 'xstream'
 import { get } from './lodashpolyfills.js'
 
 export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
-export const STREAM_CALLBACK = Symbol('powercycle.streamCallback')
-export const $_PROXY_GET_PATH = Symbol('powercycle.$ProxyGetPath')
-export const $_PROXY_BASE_STREAM = Symbol('powercycle.$ProxyBaseStream')
+export const STREAM_CALLBACK = Symbol('powercycle.stream_callback')
+export const $_PROXY_GET_PATH = Symbol('powercycle.$_proxy_get_path')
+export const $_PROXY_BASE_STREAM = Symbol('powercycle.$_base_stream')
+export const SOURCES_OBJECT = Symbol('powercycle.sources_object')
 
 // This is only needed to allow such shortcuts with shortcuts/powerUpSources:
 // sources[inc].click
@@ -14,7 +15,8 @@ export const typeSymbols = [
   VDOM_ELEMENT_FLAG,
   STREAM_CALLBACK,
   $_PROXY_GET_PATH,
-  $_PROXY_BASE_STREAM
+  $_PROXY_BASE_STREAM,
+  SOURCES_OBJECT
 ]
 
 export function isComponentNode (node) {
@@ -54,7 +56,7 @@ export function isDomElement(node) {
   )
 }
 
-export function isVdomChild (path) {
+export function isVdomChildPath (path) {
   // Map to string before join to prevent errors on symbol keys (from our pragma)
   return /^0(?:\.props\.children(?:\.\d+)?)*$/.test(path.map(String).join('.'))
 }
@@ -62,12 +64,21 @@ export function isVdomChild (path) {
 export function isInlineComponent (val, path) {
   return typeof val === 'function' &&
     !val[STREAM_CALLBACK] &&
-    isVdomChild(path)
+    isVdomChildPath(path)
 }
 
 export function isStreamCallback (val) {
   return typeof val === 'function' &&
     val[STREAM_CALLBACK]
+}
+
+export function isSourcesObject (val) {
+  if (val && typeof val === 'object' && val.state && val.state.stream && !val[SOURCES_OBJECT]) {
+    debugger
+  }
+
+  return val && typeof val === 'object' &&
+    val[SOURCES_OBJECT]
 }
 
 export function resolveStreamCallback (value, src) {
@@ -76,6 +87,13 @@ export function resolveStreamCallback (value, src) {
     : value
 }
 
-export function wrapInStreamCallback (fn) {
+export function markStreamCallback (fn) {
   return Object.assign(fn, { [STREAM_CALLBACK]: true })
+}
+
+export function markSourcesObject (sources) {
+  return Object.defineProperty(sources, SOURCES_OBJECT, {
+    value: true,
+    enumerable: false
+  })
 }

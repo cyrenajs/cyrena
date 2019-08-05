@@ -5,17 +5,18 @@ import {
 } from './lodashpolyfills.js'
 
 import xs, { Stream } from 'xstream'
-import isolate from '@cycle/isolate'
+import cycleIsolate from '@cycle/isolate'
 export { makeDOMDriver } from '@cycle/react-dom'
 
 import {
   isComponentNode,
   isElement,
   isStream,
-  isVdomChild,
+  isVdomChildPath,
   isInlineComponent,
   isStreamCallback,
-  resolveStreamCallback
+  resolveStreamCallback,
+  markSourcesObject
 } from './dynamictypes.js'
 
 import { pragma, Fragment } from './reactpragma.js'
@@ -24,7 +25,6 @@ export { pragma, Fragment } from './reactpragma.js'
 import {
   resolveShorthandOutput,
   resolvePathScope,
-  powerUpSources,
   depowerSources,
   injectAutoSel,
   resolveScopeOrIfProp,
@@ -36,6 +36,13 @@ export const CONFIG = {
   vdomProp: 'react',
   combineFn: streams => xs.combine(...streams),
   mergeFn: streams => xs.merge(...streams)
+}
+
+export function isolate (component, scope) {
+  return cycleIsolate(
+    sources => component(markSourcesObject(sources)),
+    scope
+  )
 }
 
 // Traverses the tree and returns with a flat list of stream records
@@ -92,7 +99,7 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
     _isCmp && handleAutoScope(regularCmp, val.props, config.vdomProp)
 
   // We pass key and props in the sources object
-  const sources = (_isCmp || _isStreamCallback) && {
+  const sources = (_isCmp || _isStreamCallback) && markSourcesObject({
     ...config.sources,
     // Merge outer props onto inner. Normally the outer one (val.props)
     // should be sufficient, but isolation wrapping makes it lost, and so we
@@ -101,7 +108,7 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
       ...config.sources.props,
       ...val.props
     }
-  }
+  })
 
   const sinks = _isCmp && cmp(sources)
 
@@ -126,7 +133,7 @@ const makePowercycle = config =>
 
     const traverseAction = makeTraverseAction({
       ...config,
-      sources: depowerSources(sources)
+      sources: markSourcesObject(sources)
     })
 
     const placeholders = traverse(traverseAction, root)

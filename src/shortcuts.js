@@ -22,15 +22,14 @@ import {
 } from './reactpragma.js'
 
 import {
-  powercycle
+  powercycle,
+  isolate,
 } from './powercycle.js'
 
 import {
   getConditionalCmp,
   $get
 } from './util.js'
-
-import isolate from '@cycle/isolate'
 
 // Allow shortcut return value, like: return <div>...</div>
 // or with sinks: return [<div>...</div>, { state: ... }]

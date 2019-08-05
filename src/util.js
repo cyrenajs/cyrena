@@ -12,8 +12,9 @@ import {
 import {
   isStream,
   isStreamCallback,
+  isSourcesObject,
   resolveStreamCallback,
-  wrapInStreamCallback
+  markStreamCallback
 } from './dynamictypes.js'
 
 // This is just a dummy component to serve as a lens or collection item
@@ -74,14 +75,17 @@ export const $map = (fn, src) => {
       ? _src.map(fn) :
 
     isStreamCallback(_src)
-      ? wrapInStreamCallback(src =>
+      ? markStreamCallback(src =>
           $map(fn, resolveStreamCallback(_src, src))
         ) :
 
-    _src
+    isSourcesObject(_src)
       ? $map(fn, _src.state.stream) :
 
-    wrapInStreamCallback(src => $map(fn, src))
+    _src
+      ? _src :
+
+    markStreamCallback(src => $map(fn, src))
   )
 }
 
@@ -103,13 +107,16 @@ export const $combine = (...sources) => {
   const _sources = sources.map(resolve$Proxy)
 
   if (_sources.some(isStreamCallback)) {
-    return wrapInStreamCallback(
+    return markStreamCallback(
       src => $combine(..._sources.map(_src => resolveStreamCallback(_src, src)))
     )
   }
 
   const sourceStreams = _sources.map(
-    src => isStream(src) ? src : src.state.stream
+    src =>
+      isStream(src) ? src :
+      isSourcesObject(src) ? src.state.stream :
+      xs.of(src)
   )
 
   return xs.combine(...sourceStreams)
@@ -124,6 +131,13 @@ export const $and = (...conditions) => {
 
 export const $or = (...conditions) => {
   return $not($and(...conditions.map($not)))
+}
+
+export const $eq = (val1, val2) => {
+  return $map(
+    values => values[0] === values[1],
+    $combine(val1, val2)
+  )
 }
 
 export const map = $map
