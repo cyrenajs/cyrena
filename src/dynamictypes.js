@@ -70,12 +70,9 @@ export function isStreamCallback (val) {
     val[STREAM_CALLBACK]
 }
 
-// It could be recursive for safety, assuming that there might be cases
-// with nested stream callback wrapping, but I couldn't produce so far an
-// example, where this non-recursive version didn't work well.
 export function resolveStreamCallback (value, src) {
   return isStreamCallback(value)
-    ? value(src) // resolveStreamCallback(value(src), src)
+    ? resolveStreamCallback(value(src), src)
     : value
 }
 

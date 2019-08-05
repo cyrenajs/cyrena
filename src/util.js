@@ -3,6 +3,7 @@ import { pragma, Fragment } from './reactpragma.js'
 import { powercycle, CONFIG } from './powercycle.js'
 import { collectSinksBasedOnSource } from './util/Collection.js'
 import { makeCollection } from '@cycle/state'
+import xs from 'xstream'
 
 import {
   resolve$Proxy
@@ -78,7 +79,7 @@ export const $map = (fn, src) => {
         ) :
 
     _src
-      ? _src.state.stream.map(fn) :
+      ? $map(fn, _src.state.stream) :
 
     wrapInStreamCallback(src => $map(fn, src))
   )
@@ -92,6 +93,37 @@ export const $get = (key, src) =>
 
 export const $if = ($cond, $then, $else) => {
   return $map(cond => cond ? $then : $else, $cond)
+}
+
+export const $not = $cond => {
+  return $map(cond => !cond, $cond)
+}
+
+export const $combine = (...sources) => {
+  const _sources = sources.map(resolve$Proxy)
+
+  if (_sources.some(isStreamCallback)) {
+    return wrapInStreamCallback(
+      src => $combine(..._sources.map(_src => resolveStreamCallback(_src, src)))
+    )
+  }
+
+  const sourceStreams = _sources.map(
+    src => isStream(src) ? src : src.state.stream
+  )
+
+  return xs.combine(...sourceStreams)
+}
+
+export const $and = (...conditions) => {
+  return $map(
+    conditions => conditions.reduce((cum, next) => cum && next),
+    $combine(...conditions)
+  )
+}
+
+export const $or = (...conditions) => {
+  return $not($and(...conditions.map($not)))
 }
 
 export const map = $map
