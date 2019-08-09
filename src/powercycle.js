@@ -50,8 +50,8 @@ function traverse (action, obj, path = [], root = null, acc = []) {
   let [_acc, stop] = action(acc, obj, path, root || obj)
 
   if (!stop && obj && typeof obj === 'object') {
-    for (let k of [...Object.keys(obj), ...Object.getOwnPropertySymbols(obj)]) {
-      _acc = traverse(action, obj[k], [...path, k], root || obj, _acc)
+    for (let key of [...Object.keys(obj), ...Object.getOwnPropertySymbols(obj)]) {
+      _acc = traverse(action, obj[key], [...path, key], root || obj, _acc)
     }
   }
 
@@ -101,13 +101,18 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
   // We pass key and props in the sources object
   const sources = (_isCmp || _isStreamCallback) && markSourcesObject({
     ...config.sources,
-    // Merge outer props onto inner. Normally the outer one (val.props)
-    // should be sufficient, but isolation wrapping makes it lost, and so we
-    // have to dig it out from args
-    props: {
-      ...config.sources.props,
-      ...val.props
-    }
+
+    // Previously this looked like below, with the reasoning that isolation
+    // wrapping makes outer props lost, but I actually couldn't reproduce that.
+    // Besides that, it certainly causes an issue that outer components'
+    // props can appear on their immediate children, so for now it's best to
+    // remove it.
+    // props: {
+    //   ...config.sources.props,
+    //   ...val.props
+    // }
+
+    props: val.props
   })
 
   const sinks = _isCmp && cmp(sources)
@@ -168,8 +173,10 @@ const makePowercycle = config =>
               // stream record instance is a nice option, but even better, we use
               // the placeholder's path relative to the cmp, and combine it with
               // the cmp id
-              info.autoKey = info.autoKey || getCmpAutoKey(cmpId, info.path)
-              _val = { ..._val, key: info.autoKey }
+              _val = { ..._val, key:
+                get(root, [...info.path, 'key']) ||
+                getCmpAutoKey(cmpId, info.path)
+              }
             }
 
             // It serves two purposes here:

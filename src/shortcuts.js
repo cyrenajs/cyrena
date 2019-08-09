@@ -152,10 +152,10 @@ function wrapVdom(vdom, getInlineCmp, propsToRemove, outerProps) {
 
   vdom.type = Fragment
   vdom.props = {
-    children: Object.assign(
-      getInlineCmp(type, props, children),
-      { props: outerProps }
-    )
+    children: Object.assign(getInlineCmp(type, props, children), {
+      props: outerProps,
+      key: vdom.key
+    })
   }
 }
 
