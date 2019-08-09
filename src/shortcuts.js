@@ -192,7 +192,7 @@ export function resolveIfProp(vdom) {
     (type, props, children) =>
       sources =>
         getConditionalCmp(
-          resolveStreamCallback(cond, sources),
+          resolveStreamCallback(resolve$Proxy(cond), sources),
           pragma(type, props, ...castArray(children))
         )(sources),
     ['if'],
