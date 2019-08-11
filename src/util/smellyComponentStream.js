@@ -18,6 +18,8 @@ import {
  * a better tool for the job, and this is, though looks tempting, is just a
  * smelly thing, as it switches us back to the iterative-world from static land.
  *
+ * It's also DAMN SLOW, relative to the O(logx(N)) fastness of powercycle.
+ *
  * There are very hacky workarounds to prevent focus loss, like defining react
  * keys on the elements, but then a whole new class of issues will appear: the
  * old component's sinks (and their DOM listeners) will be dismantled, and the
