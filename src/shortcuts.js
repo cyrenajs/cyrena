@@ -8,11 +8,11 @@ import {
   VDOM_ELEMENT_FLAG,
   $_PROXY_GET_PATH,
   $_PROXY_BASE_STREAM,
+  STATE_MAPPER,
   typeSymbols,
   isElement,
   isStream,
-  isDomElement,
-  resolveStateMapper
+  isDomElement
 } from './dynamictypes.js'
 
 import {
@@ -332,4 +332,22 @@ export function resolve$Proxy (val) {
   return val && val[$_PROXY_GET_PATH]
     ? $get(val[$_PROXY_GET_PATH].join('.'), val[$_PROXY_BASE_STREAM])
     : val
+}
+
+export function createStateMapper(fn) {
+  return Object.assign(fn, {
+    [STATE_MAPPER]: true
+  })
+}
+
+export function isStateMapper (fn) {
+  return typeof fn === 'function' &&
+    fn[STATE_MAPPER]
+}
+
+export function resolveStateMapper (fn, src) {
+  const _fn = resolve$Proxy(fn)
+  return isStateMapper(_fn)
+    ? src.state.stream.map(_fn)
+    : _fn
 }

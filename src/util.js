@@ -16,14 +16,13 @@ import xs from 'xstream'
 
 import {
   resolve$Proxy,
-  resolveShorthandOutput
-} from './shortcuts.js'
-
-import {
-  isStream,
   isStateMapper,
   createStateMapper,
   resolveStateMapper
+} from './shortcuts.js'
+
+import {
+  isStream
 } from './dynamictypes.js'
 
 // This is just a dummy component to serve as a lens or collection item
@@ -34,7 +33,7 @@ export function Scope (sources) {
 
 export function getDynamicCmp (stream, getCmp) {
   return sources => {
-    const _stream = resolveStateMapper(resolve$Proxy(stream), sources)
+    const _stream = resolveStateMapper(stream, sources)
 
     const instances$ = _stream.fold(function (acc, next) {
       const key = next && next.key || uniqueId()
@@ -51,10 +50,10 @@ export function getDynamicCmp (stream, getCmp) {
   }
 }
 
-export function wrapInComponent(value) {
+export function wrapInComponent(...children) {
   return sources => {
     return powercycle(
-      pragma(Fragment, null, value),
+      pragma(Fragment, null, ...children),
       null,
       sources
     )

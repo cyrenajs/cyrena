@@ -14,8 +14,6 @@ import {
   isStream,
   isVdomChildPath,
   isInlineComponent,
-  resolveStateMapper,
-  isStateMapper
 } from './dynamictypes.js'
 
 import { pragma, Fragment } from './reactpragma.js'
@@ -28,7 +26,9 @@ import {
   injectAutoSel,
   resolveScopeOrIfProp,
   resolveEventProps,
-  resolve$Proxy
+  resolve$Proxy,
+  resolveStateMapper,
+  isStateMapper
 } from './shortcuts.js'
 
 export const CONFIG = {

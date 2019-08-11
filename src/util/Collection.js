@@ -5,28 +5,20 @@ import isolate from '@cycle/isolate'
 import xs from 'xstream'
 
 import {
-  resolveStateMapper,
-  isStream
-} from '../dynamictypes.js'
-
-import {
-  getPathLens,
-  resolve$Proxy
+  getPathLens
 } from '../shortcuts.js'
 
+import { wrapInComponent } from '../util.js'
+
 import {
-  clone, uniqueId, omit, mapValues, castArray, assign
+  clone, uniqueId, omit, mapValues, castArray
 } from '../lodashpolyfills.js'
 
 export const COLLECTION_DELETE =
   prevState => undefined
 
 export const CollectionItem = sources =>
-  powercycle(
-    pragma(Fragment, null, ...castArray(sources.props.children)),
-    null,
-    sources
-  )
+  wrapInComponent(sources.props.children)(sources)
 
 // Collect all the channels (keys) from the sources as a base for pickMerge
 export const collectSinksBasedOnSource = sources => instances => {

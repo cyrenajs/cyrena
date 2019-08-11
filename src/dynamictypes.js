@@ -32,10 +32,6 @@ export const typeSymbols = [
   STATE_MAPPER
 ]
 
-export function createStateMapper(fn) {
-  return Object.assign(fn, { [STATE_MAPPER]: true })
-}
-
 export function isComponentNode (node) {
   return node &&
     node[VDOM_ELEMENT_FLAG] &&
@@ -82,17 +78,6 @@ export function isInlineComponent (val, path) {
   return typeof val === 'function' &&
     !val[STATE_MAPPER] &&
     isVdomChildPath(path)
-}
-
-export function isStateMapper (fn) {
-  return typeof fn === 'function' &&
-    fn[STATE_MAPPER]
-}
-
-export function resolveStateMapper (fn, src) {
-  return isStateMapper(fn)
-    ? src.state.stream.map(fn)
-    : fn
 }
 
 export function createElement (vdom) {

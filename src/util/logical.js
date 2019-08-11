@@ -6,12 +6,8 @@ import {
 } from '../util.js'
 
 import {
-  resolve$Proxy
-} from '../shortcuts.js'
-
-import {
   resolveStateMapper
-} from '../dynamictypes.js'
+} from '../shortcuts.js'
 
 export function getConditionalCmp (cond$, getCmp) {
   return getDynamicCmp (
@@ -26,7 +22,7 @@ export function getConditionalCmp (cond$, getCmp) {
 }
 
 export function If (sources) {
-  const cond$ = resolveStateMapper(resolve$Proxy(sources.props.cond), sources)
+  const cond$ = resolveStateMapper(sources.props.cond, sources)
 
   const thenVdom = sources.props.then || sources.props.children
   const elseVdom = sources.props.else
