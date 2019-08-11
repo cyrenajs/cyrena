@@ -11,7 +11,7 @@ import {
 import { wrapInComponent } from '../util.js'
 
 import {
-  clone, uniqueId, omit, mapValues, castArray
+  omit, mapValues, castArray
 } from '../lodashpolyfills.js'
 
 export const COLLECTION_DELETE =
