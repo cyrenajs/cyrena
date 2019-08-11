@@ -1,8 +1,19 @@
 import { pragma, Fragment } from '../reactpragma.js'
 import { makeCollection } from '@cycle/state'
-import { powercycle, CONFIG, isolate } from '../powercycle.js'
-import { getPathLens } from '../shortcuts.js'
-import { get } from '../util.js'
+import { powercycle, CONFIG } from '../powercycle.js'
+import isolate from '@cycle/isolate'
+import xs from 'xstream'
+
+import {
+  resolveStateMapper,
+  isStream
+} from '../dynamictypes.js'
+
+import {
+  getPathLens,
+  resolve$Proxy
+} from '../shortcuts.js'
+
 import {
   clone, uniqueId, omit, mapValues, castArray, assign
 } from '../lodashpolyfills.js'
@@ -20,7 +31,9 @@ export const CollectionItem = sources =>
 // Collect all the channels (keys) from the sources as a base for pickMerge
 export const collectSinksBasedOnSource = sources => instances => {
   // Make sure that the sources object is de-proxyfied
-  return [clone(sources)]
+  // Update: seems like it's not needed
+  // return [clone(sources)]
+  return [sources]
     // 'props' is a special source prop, and not a channel
     .map(omit(['props']))
     // pickMerge the event channels based on the sources keys
@@ -49,6 +62,7 @@ export function Collection (sources) {
   const outerStateName = sources.props.outerstate === undefined
     ? 'outerState'
     : sources.props.outerstate
+
   const channel = sources.props.channel || 'state'
 
   const forLens = !sources.props.for
@@ -128,6 +142,7 @@ export function Collection (sources) {
     })
 
     // Add outerState to sources
+    // @todo: use withLocalState on the item instead
     .map(list =>
       outerStateName
         ? sources => {

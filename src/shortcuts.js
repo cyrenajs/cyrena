@@ -12,8 +12,7 @@ import {
   isElement,
   isStream,
   isDomElement,
-  isStreamCallback,
-  resolveStreamCallback
+  resolveStateMapper
 } from './dynamictypes.js'
 
 import {
@@ -22,12 +21,16 @@ import {
 } from './reactpragma.js'
 
 import {
-  powercycle,
-  isolate,
+  powercycle
 } from './powercycle.js'
 
+import isolate from '@cycle/isolate'
+
 import {
-  getConditionalCmp,
+  getConditionalCmp
+} from './util/logical.js'
+
+import {
   $get
 } from './util.js'
 
@@ -190,11 +193,27 @@ export function resolveIfProp(vdom) {
   wrapVdom(
     vdom,
     (type, props, children) =>
-      sources =>
-        getConditionalCmp(
-          resolveStreamCallback(resolve$Proxy(cond), sources),
-          pragma(type, props, ...castArray(children))
-        )(sources),
+
+      sources => {
+
+        return getConditionalCmp(
+          resolveStateMapper(resolve$Proxy(cond), sources),
+          cond => {
+            return sources => {
+              return powercycle(
+                cond
+                  ? pragma(type, props, ...castArray(children))
+                  : pragma(Fragment),
+                null,
+                sources
+              )
+            }
+          }
+        )(sources)
+
+      }
+
+      ,
     ['if'],
     {}
   )

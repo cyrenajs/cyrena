@@ -5,7 +5,7 @@ import {
 } from './lodashpolyfills.js'
 
 import xs, { Stream } from 'xstream'
-import cycleIsolate from '@cycle/isolate'
+import isolate from '@cycle/isolate'
 export { makeDOMDriver } from '@cycle/react-dom'
 
 import {
@@ -14,9 +14,8 @@ import {
   isStream,
   isVdomChildPath,
   isInlineComponent,
-  isStreamCallback,
-  resolveStreamCallback,
-  markSourcesObject
+  resolveStateMapper,
+  isStateMapper
 } from './dynamictypes.js'
 
 import { pragma, Fragment } from './reactpragma.js'
@@ -36,13 +35,6 @@ export const CONFIG = {
   vdomProp: 'react',
   combineFn: streams => xs.combine(...streams),
   mergeFn: streams => xs.merge(...streams)
-}
-
-export function isolate (component, scope) {
-  return cycleIsolate(
-    sources => component(markSourcesObject(sources)),
-    scope
-  )
 }
 
 // Traverses the tree and returns with a flat list of stream records
@@ -75,7 +67,7 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
   const _isRegularCmp = isComponentNode(val)
   const _isInlineCmp = isInlineComponent(val, path)
   const _isCmp = _isRegularCmp || _isInlineCmp
-  const _isStreamCallback = isStreamCallback(val)
+  const _isStateMapper = isStateMapper(val)
 
   // These mutate the vdom (val)
   if (resolveScopeOrIfProp(val, config) === true) {
@@ -86,7 +78,7 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
     return [acc, false]
   }
 
-  if (!_isStream && !_isCmp && !_isStreamCallback) {
+  if (!_isStream && !_isCmp && !_isStateMapper) {
     // The boolean is to tell the traversal to go on
     return [acc, false]
   }
@@ -99,7 +91,7 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
     _isCmp && handleAutoScope(regularCmp, val.props, config.vdomProp)
 
   // We pass key and props in the sources object
-  const sources = (_isCmp || _isStreamCallback) && markSourcesObject({
+  const sources = (_isCmp || _isStateMapper) && {
     ...config.sources,
 
     // Previously this looked like below, with the reasoning that isolation
@@ -113,11 +105,11 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
     // }
 
     props: val.props
-  })
+  }
 
   const sinks = _isCmp && cmp(sources)
 
-  const _val = resolveStreamCallback(val, sources)
+  const _val = resolveStateMapper(val, sources)
 
   acc.push({ val: _val, path, isCmp: _isCmp, sinks })
 
@@ -138,7 +130,7 @@ const makePowercycle = config =>
 
     const traverseAction = makeTraverseAction({
       ...config,
-      sources: markSourcesObject(sources)
+      sources
     })
 
     const placeholders = traverse(traverseAction, root)

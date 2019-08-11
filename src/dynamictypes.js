@@ -1,11 +1,25 @@
+/**
+ * The type system in powercycle is a 4-level ladder:
+ *
+ * - Component :: SourcesObject -> SinksObject
+ *   Any function
+ * - InlineComponent :: SourcesObject -> SinksObject
+ *   Any function
+ * - StateMapper :: State -> State
+ *   Produced mainly with the $map function - function with a symbol flag
+ * - StateReference :: Proxy sugar which resolves to a StateMapper in
+ *   powercycle::traverseAction
+ * - StreamReference :: Proxy sugar which resolves to a Stream in
+ *   powercycle::traverseAction
+ */
+
 import { Stream } from 'xstream'
 import { get } from './lodashpolyfills.js'
 
 export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
-export const STREAM_CALLBACK = Symbol('powercycle.stream_callback')
 export const $_PROXY_GET_PATH = Symbol('powercycle.$_proxy_get_path')
 export const $_PROXY_BASE_STREAM = Symbol('powercycle.$_base_stream')
-export const SOURCES_OBJECT = Symbol('powercycle.sources_object')
+export const STATE_MAPPER = Symbol('powercycle.state_mapper')
 
 // This is only needed to allow such shortcuts with shortcuts/powerUpSources:
 // sources[inc].click
@@ -13,11 +27,14 @@ export const SOURCES_OBJECT = Symbol('powercycle.sources_object')
 // with it this list.
 export const typeSymbols = [
   VDOM_ELEMENT_FLAG,
-  STREAM_CALLBACK,
   $_PROXY_GET_PATH,
   $_PROXY_BASE_STREAM,
-  SOURCES_OBJECT
+  STATE_MAPPER
 ]
+
+export function createStateMapper(fn) {
+  return Object.assign(fn, { [STATE_MAPPER]: true })
+}
 
 export function isComponentNode (node) {
   return node &&
@@ -63,37 +80,17 @@ export function isVdomChildPath (path) {
 
 export function isInlineComponent (val, path) {
   return typeof val === 'function' &&
-    !val[STREAM_CALLBACK] &&
+    !val[STATE_MAPPER] &&
     isVdomChildPath(path)
 }
 
-export function isStreamCallback (val) {
-  return typeof val === 'function' &&
-    val[STREAM_CALLBACK]
+export function isStateMapper (fn) {
+  return typeof fn === 'function' &&
+    fn[STATE_MAPPER]
 }
 
-export function isSourcesObject (val) {
-  if (val && typeof val === 'object' && val.state && val.state.stream && !val[SOURCES_OBJECT]) {
-    debugger
-  }
-
-  return val && typeof val === 'object' &&
-    val[SOURCES_OBJECT]
-}
-
-export function resolveStreamCallback (value, src) {
-  return isStreamCallback(value)
-    ? resolveStreamCallback(value(src), src)
-    : value
-}
-
-export function markStreamCallback (fn) {
-  return Object.assign(fn, { [STREAM_CALLBACK]: true })
-}
-
-export function markSourcesObject (sources) {
-  return Object.defineProperty(sources, SOURCES_OBJECT, {
-    value: true,
-    enumerable: false
-  })
+export function resolveStateMapper (fn, src) {
+  return isStateMapper(fn)
+    ? src.state.stream.map(fn)
+    : fn
 }

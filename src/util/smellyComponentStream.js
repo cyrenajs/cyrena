@@ -1,24 +1,17 @@
-import xs from 'xstream';
-import { Instances } from '@cycle/state'
-import { collectSinksBasedOnSource } from './Collection.js'
-import { uniqueId, castArray } from '../lodashpolyfills.js'
-import { pragma } from '../reactpragma.js'
-import { powercycle } from '../powercycle.js'
 import {
-  resolve$Proxy,
   resolveShorthandOutput
 } from '../shortcuts.js'
 
 import {
-  resolveStreamCallback
-} from '../dynamictypes.js'
-
+  getDynamicCmp
+} from '../util.js'
 
 /**
- * This allows to use managed VDOMs/VDOM-sinks object pairs or components as
- * stream emit values. It returns a component.
+ * Allows to use a stream of components as one component. This a monad bind
+ * basically. The emit value can be a component function or simply a VDOM or
+ * pair of [VDOM, sinks].
  *
- * As every emit will completely replaces the previous one,
+ * As every emit will completely replaces the previous wrapped component,
  * a completely new render will take place as well, so focus will be lost. Its
  * only meaningful use case might be where this focus loss is not a problem, but
  * we need output streams of clicks for example. A Collection is probably still
@@ -33,36 +26,22 @@ import {
  * which we don't want.
  *
  * But just for the record, further very hacky mitigation for the "read-only"
- * issue would be to prevent acc.dict.clear(), so the old streams (and listeners)
+ * problem would be to prevent acc.dict.clear(), so the old streams (and listeners)
  * keep working on the old DOM nodes, but then it leads to a memory and stream
  * leak with the ever-growing sink dict.
  *
- * A mitigation of the ever-growing sink dict would be to just prevent acc.dict.set
- * after the first one (if dict.size === 0 {...}), but then we have to make
- * super-super sure that the component does not get rerendered by React.
+ * And in turn, a mitigation of the ever-growing sink dict (this is super hacky
+ * now) would be to just prevent acc.dict.set after the first one
+ * (if dict.size === 0 {...}), but then we have to make sure that the component
+ * does not get rerendered by React.
  *
- * All-in-all, you should probably never use this function.
+ * This hell of lifecycle management comes from the very model of the iterative
+ * world, so you should probably just never use this function.
  */
 export function smellyComponentStream (stream) {
-  return sources => {
-    const _stream = resolveStreamCallback(resolve$Proxy(stream), sources)
-
-    const instances$ = _stream.fold(function (acc, next) {
-      const key = uniqueId()
-
-      const cmp = resolveShorthandOutput(
-        typeof next === 'function' ? next : () => next
-      )
-
-      acc.dict.clear()
-
-      const sinks = cmp(sources)
-
-      acc.dict.set(key, sinks)
-
-      return { dict: acc.dict, arr: [{ ...sinks, _key: key }] }
-    }, { dict: new Map(), arr: [] })
-
-    return collectSinksBasedOnSource(sources)(new Instances(instances$))
-  }
+  return getDynamicCmp(stream, streamValue => {
+    return resolveShorthandOutput(
+      typeof streamValue === 'function' ? streamValue : () => streamValue
+    )
+  })
 }
