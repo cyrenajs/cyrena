@@ -94,3 +94,9 @@ export function resolveStateMapper (fn, src) {
     ? src.state.stream.map(fn)
     : fn
 }
+
+export function createElement (vdom) {
+  return Object.assign(vdom, {
+    [VDOM_ELEMENT_FLAG]: true
+  })
+}
