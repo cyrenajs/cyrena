@@ -28,7 +28,7 @@ import {
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
 export function Scope (sources) {
-  return pragma(Fragment, null, ...castArray(sources.props.children))
+  return wrapInComponent(sources.props.children)(sources)
 }
 
 export function getDynamicCmp (stream, getCmp) {
@@ -50,10 +50,10 @@ export function getDynamicCmp (stream, getCmp) {
   }
 }
 
-export function wrapInComponent(...children) {
+export function wrapInComponent(...values) {
   return sources => {
     return powercycle(
-      pragma(Fragment, null, ...children),
+      pragma(Fragment, null, ...castArray(values)),
       null,
       sources
     )

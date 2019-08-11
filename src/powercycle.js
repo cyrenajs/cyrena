@@ -22,7 +22,6 @@ export { pragma, Fragment } from './reactpragma.js'
 import {
   resolveShorthandOutput,
   resolvePathScope,
-  depowerSources,
   injectAutoSel,
   resolveScopeOrIfProp,
   resolveEventProps,

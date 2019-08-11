@@ -1,5 +1,5 @@
 import {
-  clone, uniqueId, omit, get, set, pick, forEach, castArray
+  clone, omit, get, set, pick, forEach, castArray
 } from './lodashpolyfills.js'
 
 import xs from 'xstream'
@@ -118,8 +118,6 @@ export function powerUpSources (sources) {
     }
   })
 }
-
-export const depowerSources = clone
 
 // Injects sel={SEL_ROOT} automatically on the root element of the VDOM
 // It's used internally with powerUpSources
