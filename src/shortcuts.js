@@ -250,7 +250,7 @@ export function resolveEventProps(vdom, { mergeFn }) {
     return
   }
 
-  const eventProps = pick(vdom.props, EVENT_PROPS)
+  const eventProps = pick(EVENT_PROPS)(vdom.props)
 
   if (Object.keys(eventProps).length === 0) {
     return

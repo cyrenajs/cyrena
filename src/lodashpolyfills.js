@@ -35,6 +35,9 @@ export const compact = array =>
 export const omit = keys => obj =>
   keys.reduce((cum, key) => (delete cum[key], cum), { ...obj })
 
+export const pick = keys => obj =>
+  keys.reduce((cum, key) => obj[key] ? ({ ...cum, [key]: obj[key] }) : cum, {})
+
 export const zip = (...arrays) =>
   arrays[0].map((val, idx) => arrays.map(arr => arr[idx]))
 
@@ -69,9 +72,6 @@ export const set = (obj, path, val) =>
 
 export const without = (arr, ...values) =>
   arr.filter(val => !values.includes(val))
-
-export const pick = (obj, keys) =>
-  keys.reduce((cum, key) => obj[key] ? ({ ...cum, [key]: obj[key] }) : cum, {})
 
 export const forEach = (obj, fn) =>
   Object.entries(obj).forEach(([key, value]) => fn(value, key))
