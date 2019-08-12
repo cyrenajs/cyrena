@@ -1,4 +1,4 @@
-import { castArray, get as _get, uniqueId, omit, pick } from './lodashpolyfills.js'
+import { castArray, get as _get, uniqueId } from './lodashpolyfills.js'
 import { pragma, Fragment } from './reactpragma.js'
 import { powercycle, CONFIG } from './powercycle.js'
 
@@ -8,20 +8,14 @@ import {
 } from './util/Collection.js'
 
 import {
-  withState,
   Instances,
-  StateSource
 } from '@cycle/state'
-
-import xs from 'xstream'
-import sampleCombine from 'xstream/extra/sampleCombine'
 
 import {
   resolve$Proxy,
   isStateMapper,
   createStateMapper,
   resolveStateMapper,
-  resolveShorthandOutput
 } from './shortcuts.js'
 
 import {
@@ -95,76 +89,4 @@ export const $get = (key, src) =>
 
 export const $for = (base, vdom) => {
   return pragma(Collection, { for: base }, vdom)
-}
-
-
-
-
-/**
- * Based on jvanbruegge's withLocalState
- * at https://github.com/cyclejs/cyclejs/issues/882
- * https://gist.github.com/jvanbruegge/9af17f4f5fca8bb3e6198ebe65afac55
- *
- * The inner component only see the main state channel. The merger object works
- * like a lens, where 'merge' is the 'get', and 'extract' is the 'set'. The
- * extract method receives the merged state and expects an object with a 'global'
- * and 'local' key. The merge method receives the global and local states, and
- * expects a merged state.
- * const customMerger = {
- *   merge: (g, l) => ({ ...l, { authToken: g.authToken }),
- *   extract: t => ({ global: { authToken: t.authToken }, local: omit(['authToken'], t) })
- * }
- * export const Login = withLocalState(LoginComponent, customMerger);
- */
-export function _withLocalState(localKeys, cmp) {
-  const defaultMerger = {
-    merge: (global, local) => ({ ...global, ...local }),
-    extract: state => ({
-      global: omit(localKeys)(state),
-      local: pick(localKeys)(state)
-    })
-  }
-
-  const stateChannel = 'state'
-  const localChannel = '_localState'
-
-  const wrapper = function WithLocalState(sources) {
-    const merger = defaultMerger
-
-    const state$ = xs
-      .combine(
-        sources[stateChannel].stream,
-        sources[localChannel].stream
-      )
-      .map(([g, l]) => merger.merge(g, l))
-      .startWith(undefined)
-      .remember()
-
-    const sinks = cmp({
-      ...omit([localChannel])(sources),
-      [stateChannel]: new StateSource(state$, 'withLocalState')
-    })
-
-    const updated$ = !sinks[stateChannel] ? xs.never() :
-      sinks[stateChannel]
-        .compose(sampleCombine(state$))
-        .map(([reducer, state]) => merger.extract(reducer(state)))
-
-    const global$ = updated$.map(s => state => ({ ...state, ...s.global }))
-    const local$ = updated$.map(s => state => ({ ...state, ...s.local }))
-
-    return {
-      ...sinks,
-      [stateChannel]: global$,
-      [localChannel]: local$
-    }
-  }
-
-  return withState(wrapper, localChannel)
-}
-
-export function withLocalState(localKeys) {
-  return cmp => {
-    return _withLocalState(localKeys, resolveShorthandOutput(cmp))
-  }
 }
