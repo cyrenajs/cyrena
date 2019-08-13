@@ -28,6 +28,10 @@ export function Scope (sources) {
   return wrapInComponent(sources.props.children)(sources)
 }
 
+export function Debug (sources) {
+  return pragma('pre', null, $map(JSON.stringify))
+}
+
 export function getDynamicCmp (stream, getCmp) {
   return sources => {
     const _stream = resolveStateMapper(stream, sources)
