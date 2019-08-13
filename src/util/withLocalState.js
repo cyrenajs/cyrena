@@ -23,6 +23,7 @@ export function createDefaultStateMerger () {
   let prevGlobal
   return {
     merge: (global, local) => {
+      prevGlobal = global
       return { ...global, ...local }
     },
     extract: state => {
@@ -53,9 +54,17 @@ export function createDefaultStateMerger () {
  * }
  * export const Login = withLocalState(LoginComponent, customMerger);
  *
- * Our version has a minor fix (startWith added to the global channel), and
- * currently there's no parameter for custom mergers, because we believe that
- * the above one is a good-for-all one.
+ * Our version has some improvements over Jan's implementation. Both channels
+ * are initiated with an empty startWith, which guarantees that an initial
+ * reducer initalState$ = xs.of(prev => ({ ...prev, ...localKeys })) will work
+ * propertly (with the oritinal solution, a delay was needed as a workaround).
+ * Then, we drop these two initial emits in the component state. The component
+ * MUST create an xs.of-style initial reducer. On the output side, the reducer
+ * will receive the correct global state from the sampleCombine. I'm tired to
+ * explain it now, but the pieces are correctly put together now.
+ *
+ * Currently there's no parameter for custom mergers, because we believe that
+ * this solution is good for every case.
  */
 export function _withLocalState(cmp) {
   const stateChannel = 'state'
@@ -75,7 +84,10 @@ export function _withLocalState(cmp) {
 
     const sinks = cmp({
       ...omit([localChannel])(sources),
-      [stateChannel]: new StateSource(state$, 'withLocalState')
+      [stateChannel]: new StateSource(
+        state$.drop(2),
+        'withLocalState'
+      )
     })
 
     // Convert the emitted reducers back to state values and run
@@ -90,6 +102,7 @@ export function _withLocalState(cmp) {
     const global$ = updated$.map(extractedState => prevState => {
       return { ...prevState, ...extractedState.global }
     })
+
     const local$ = updated$.map(extractedState => prevState => {
       return { ...prevState, ...extractedState.local }
     })
