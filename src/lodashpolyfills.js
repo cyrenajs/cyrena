@@ -36,7 +36,10 @@ export const omit = keys => obj =>
   keys.reduce((cum, key) => (delete cum[key], cum), { ...obj })
 
 export const pick = keys => obj =>
-  keys.reduce((cum, key) => obj[key] ? ({ ...cum, [key]: obj[key] }) : cum, {})
+  keys.reduce(
+    (cum, key) => Reflect.has(obj, key) ? ({ ...cum, [key]: obj[key] }) : cum,
+    {}
+  )
 
 export const zip = (...arrays) =>
   arrays[0].map((val, idx) => arrays.map(arr => arr[idx]))
