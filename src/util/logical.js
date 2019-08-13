@@ -66,6 +66,6 @@ export const $eq = (val1, val2) => {
     values => {
       return values[0] === values[1]
     },
-    $combine(val1, val2 || $)
+    $combine(val1, val2 !== undefined ? val2 : $)
   )
 }
