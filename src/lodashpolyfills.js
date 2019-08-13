@@ -33,10 +33,10 @@ export const compact = array =>
   array.filter(value => value)
 
 export const omit = keys => obj =>
-  keys.reduce((cum, key) => (delete cum[key], cum), { ...obj })
+  castArray(keys).reduce((cum, key) => (delete cum[key], cum), { ...obj })
 
 export const pick = keys => obj =>
-  keys.reduce(
+  castArray(keys).reduce(
     (cum, key) => Reflect.has(obj, key) ? ({ ...cum, [key]: obj[key] }) : cum,
     {}
   )
