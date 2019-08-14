@@ -50,8 +50,8 @@ export const mergeWith = (obj, src, customizer) =>
     obj
   )
 
-export const get = (obj, path) =>
-  path.reduce((cum, key) => (cum || {})[key], obj)
+export const get = path => obj =>
+  castArray(path).reduce((cum, key) => (cum || {})[key], obj)
 
 // This is not lodash
 export function clonePath (obj, path) {
@@ -73,8 +73,10 @@ export const set = (obj, path, val) =>
       : val
   })
 
-export const without = (arr, ...values) =>
+export const without = values => arr =>
   arr.filter(val => !values.includes(val))
 
 export const forEach = (obj, fn) =>
   Object.entries(obj).forEach(([key, value]) => fn(value, key))
+
+export const not = predicate => (...args) => !predicate(...args)

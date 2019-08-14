@@ -51,7 +51,7 @@ export function isElement (val) {
 export function isStream (val) {
   let _isStream = val instanceof Stream
 
-  if (!_isStream && /^(?:Memory)Stream$/i.test(get(val, ['constructor', 'name']))) {
+  if (!_isStream && /^(?:Memory)Stream$/i.test(get(['constructor', 'name'])(val))) {
     console.warn('Powercycle\'s stream detection failed on an object with an ' +
       'instanceof check, but it pretty much seems like a stream. It\'s probably ' +
       'a double xstream instance problem on codesandbox.')

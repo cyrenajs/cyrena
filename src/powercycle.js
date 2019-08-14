@@ -124,7 +124,7 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
 
 function getCmpAutoKey (cmpId, path) {
   return `pc-cmp-autokey-#${cmpId}-` +
-    without(path, 'props', 'children').join('.')
+    without(['props', 'children'])(path).join('.')
 }
 
 const makePowercycle = config =>
@@ -170,7 +170,7 @@ const makePowercycle = config =>
               // the placeholder's path relative to the cmp, and combine it with
               // the cmp id
               _val = { ..._val, key:
-                get(root, [...info.path, 'key']) ||
+                get([...info.path, 'key'])(root) ||
                 getCmpAutoKey(cmpId, info.path)
               }
             }
@@ -183,7 +183,7 @@ const makePowercycle = config =>
             root = set(clonePath(root, info.path), info.path, _val)
 
             // A way to catch error caused by frozen react vdom/props/etc. object
-            // if (get(root, info.path) !== _val) {
+            // if (get(info.path)(root) !== _val) {
             //   console.error('Can\'t write value into VDOM: ', _val, info.path)
             // }
           })

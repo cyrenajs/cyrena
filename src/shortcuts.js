@@ -61,7 +61,7 @@ export function getPathLens(path) {
   const pathArr = path.split('.')
 
   return {
-    get: state => get(state, pathArr),
+    get: get(pathArr),
     set: (state, childState) => clone(set(state, pathArr, childState))
   }
 }
@@ -89,7 +89,9 @@ function eventsProxy (target, prop) {
       new Proxy(target.events(prop), {
         get: (target, prop) =>
           target[prop] ||
-          target.map(ev => get(ev, prop.split('.')))
+          target.map(ev => {
+            return get(prop.split('.'))(ev)
+          })
       })
   })
 }

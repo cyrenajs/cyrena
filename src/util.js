@@ -87,7 +87,7 @@ export const $map = (_fn, src) => {
 
 export const $get = (key, src) =>
   $map(
-    streamVal => key ? _get(streamVal, key.split('.')) : streamVal,
+    streamVal => key ? _get(key.split('.'))(streamVal) : streamVal,
     src
   )
 
