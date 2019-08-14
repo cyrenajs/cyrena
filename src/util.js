@@ -67,21 +67,21 @@ export function wrapInComponent(...values) {
 // - $ proxy
 // If src is a sources object, then the mapper will occur on
 // src.state.stream
-export const $map = (_fn, src) => {
+export const $map = (fn, src) => {
   const _src = resolve$Proxy(src)
-  const fn = resolve$Proxy(_fn)
+  const _fn = resolve$Proxy(fn)
 
   return (
     isStream(_src)
-      ? _src.map(fn) :
+      ? _src.map(_fn) :
 
     isStateMapper(_src)
-      ? createStateMapper(state => fn(_src(state))) :
+      ? createStateMapper(state => _fn(_src(state))) :
 
-    typeof fn === 'function'
-      ? createStateMapper(fn) :
+    typeof _fn === 'function'
+      ? createStateMapper(_fn) :
 
-    createStateMapper(() => fn)
+    createStateMapper(() => _fn)
   )
 }
 
