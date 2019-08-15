@@ -3,7 +3,7 @@ import { pragma, Fragment } from '../reactpragma.js'
 import xs from 'xstream'
 import {
   clone, castArray, cloneDeepWith
-} from '../lodashpolyfills.js'
+} from '../fp.js'
 
 const isReactComponent = val =>
   val && val.$$typeof === Symbol.for('react.element') &&
@@ -22,14 +22,13 @@ export function ReactRealm (_sources) {
   })
 
   const subVdomWithAmendedProps = cloneDeepWith(
-    _sources.props.children,
-    function (val) {
+    val => {
       if (isReactComponent(val)) {
         const sources = Object.assign(clone(_sources), { reducer$ })
         return { ...val, props: { ...val.props, sources }}
       }
     }
-  )
+  )(_sources.props.children)
 
   return {
     react: xs.of(

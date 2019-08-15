@@ -14,7 +14,7 @@
  */
 
 import { Stream } from 'xstream'
-import { get } from './lodashpolyfills.js'
+import { get } from './fp.js'
 
 export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
 export const $_PROXY_GET_PATH = Symbol('powercycle.$_proxy_get_path')

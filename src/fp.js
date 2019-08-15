@@ -1,9 +1,12 @@
+export const isObject = val =>
+  val && typeof val === 'object'
+
 // It differs from the Lodash version!
-export const defaultTo = (val, defaultValFn) =>
-  val == null ? defaultValFn() : val
+export const defaultTo = (val, getDefaultValue) =>
+  val == null ? getDefaultValue() : val
 
 export const mapValues = fn => obj =>
-  !obj || typeof obj !== 'object' ? obj : (
+  !isObject(obj) ? obj : (
     Array.isArray(obj)
       ? obj.map(fn)
       : Object.keys(obj).reduce(
@@ -12,13 +15,12 @@ export const mapValues = fn => obj =>
         )
   )
 
-export const clone = obj =>
-  mapValues(x => x)(obj)
+export const clone = mapValues(x => x)
 
-export const cloneDeepWith = (obj, customizer) =>
+export const cloneDeepWith = customizer => obj =>
   defaultTo(
     customizer(obj),
-    () => mapValues(prop => cloneDeepWith(prop, customizer))(obj)
+    () => mapValues(prop => cloneDeepWith(customizer)(prop))(obj)
   )
 
 let _uniqueId = 0
@@ -33,7 +35,10 @@ export const compact = array =>
   array.filter(value => value)
 
 export const omit = keys => obj =>
-  castArray(keys).reduce((cum, key) => (delete cum[key], cum), { ...obj })
+  castArray(keys).reduce(
+    (cum, key) => (delete cum[key], cum),
+    { ...obj }
+  )
 
 export const pick = keys => obj =>
   castArray(keys).reduce(
@@ -44,14 +49,26 @@ export const pick = keys => obj =>
 export const zip = (...arrays) =>
   arrays[0].map((val, idx) => arrays.map(arr => arr[idx]))
 
-export const mergeWith = (obj, src, customizer) =>
+export const merge = (obj, src, customizer = (oldVal, newVal) => newVal) =>
   Object.keys(src).reduce((cum, key) =>
     ({ ...cum, [key]: customizer(cum[key], src[key]) }),
-    obj
+    { ...obj }
   )
 
+export const mergeDeep = (obj, src, customizer = (oldVal, newVal) => newVal) => {
+  return merge(obj, src, (oldVal, newVal) => {
+    const _newVal = customizer(oldVal, newVal)
+    return isObject(oldVal) && isObject(_newVal)
+      ? mergeDeep(oldVal, _newVal, customizer)
+      : _newVal
+  })
+}
+
 export const get = path => obj =>
-  castArray(path).reduce((cum, key) => (cum || {})[key], obj)
+  castArray(path).reduce(
+    (cum, key) => (cum || {})[key],
+    obj
+  )
 
 // This is not lodash
 export function clonePath (obj, path) {
@@ -77,6 +94,13 @@ export const without = values => arr =>
   arr.filter(val => !values.includes(val))
 
 export const forEach = (obj, fn) =>
-  Object.entries(obj).forEach(([key, value]) => fn(value, key))
+  Object.entries(obj).forEach(
+    ([key, value]) => fn(value, key)
+  )
 
-export const not = predicate => (...args) => !predicate(...args)
+export const not = predicate => (...args) =>
+  !predicate(...args)
+
+export const arrayPush = newItem => baseArr => {
+  return [...baseArr, newItem]
+}

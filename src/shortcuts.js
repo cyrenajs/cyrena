@@ -1,6 +1,6 @@
 import {
   clone, omit, get, set, pick, forEach, castArray
-} from './lodashpolyfills.js'
+} from './fp.js'
 
 import xs from 'xstream'
 

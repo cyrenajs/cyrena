@@ -10,7 +10,7 @@ import {
   resolveShorthandOutput
 } from '../shortcuts.js'
 
-import { omit, pick } from '../lodashpolyfills.js'
+import { omit, pick } from '../fp.js'
 
 /**
  * A special merger for withLocalState, which remembers the keys in the global

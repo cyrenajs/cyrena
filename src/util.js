@@ -1,6 +1,14 @@
-import { castArray, get as _get, uniqueId } from './lodashpolyfills.js'
 import { pragma, Fragment } from './reactpragma.js'
 import { powercycle, CONFIG } from './powercycle.js'
+
+import {
+  castArray,
+  get as _get,
+  pick,
+  uniqueId,
+  mergeDeep,
+  isObject
+} from './fp.js'
 
 import {
   Collection,
@@ -19,6 +27,7 @@ import {
 } from './shortcuts.js'
 
 import {
+  $_PROXY_GET_PATH,
   isStream
 } from './dynamictypes.js'
 
@@ -60,6 +69,26 @@ export function wrapInComponent(...values) {
     )
   }
 }
+
+export const pickerLens = (...keys) => ({
+  get: pick(keys),
+  set: (outer, inner) => ({ ...outer, ...pick(keys)(inner) })
+})
+
+// This is a handy tool to keep reducers short and terse. It is basically a
+// lodash-like deep merger, but it detects $ proxies and resolves them with
+// the target object (which is the previousState in reducers). Keep in mind
+// that it name conflicts with the mergeWith function in fp.js. That version is
+// just a shallow merger
+export const mergeWith = src => obj => {
+  return mergeDeep(obj, src, (oldVal, newVal) => {
+    return newVal && newVal[$_PROXY_GET_PATH]
+      ? _get(newVal[$_PROXY_GET_PATH])(obj)
+      : newVal
+  })
+}
+
+
 
 // Helper function to easily access state parts in the vdom.
 // src can be any of these 4:

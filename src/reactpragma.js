@@ -1,6 +1,6 @@
 import { jsxFactory } from '@cycle/react-dom'
 export { Fragment } from 'react'
-import { clone } from './lodashpolyfills.js'
+import { clone } from './fp.js'
 import { createElement } from './dynamictypes.js'
 import { resolve$Proxy } from './shortcuts.js'
 

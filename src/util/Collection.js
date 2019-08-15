@@ -12,7 +12,7 @@ import { wrapInComponent } from '../util.js'
 
 import {
   omit, mapValues, castArray
-} from '../lodashpolyfills.js'
+} from '../fp.js'
 
 export const COLLECTION_DELETE =
   prevState => undefined

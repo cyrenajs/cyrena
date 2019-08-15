@@ -1,2 +1,2 @@
 
-export * from '../src/lodashpolyfills.js'
+export * from '../src/fp.js'

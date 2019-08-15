@@ -1,8 +1,8 @@
 import {
   clone, castArray, compact, omit, mapValues,
-  zip, mergeWith, uniqueId, get, set, without,
+  zip, merge, uniqueId, get, set, without,
   clonePath
-} from './lodashpolyfills.js'
+} from './fp.js'
 
 import { withState } from '@cycle/state'
 import xs, { Stream } from 'xstream'
@@ -198,7 +198,7 @@ const makePowercycle = config =>
         .map(xs => xs.map(rec => rec.sinks))
         .map(xs => [eventSinks || {}, ...xs])
         .map(xs => xs.reduce(
-          (acc, next) => mergeWith(
+          (acc, next) => merge(
             acc,
             omit([config.vdomProp])(next),
             (addition, src) => compact([...castArray(addition), src])
