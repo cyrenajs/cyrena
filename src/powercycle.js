@@ -115,11 +115,9 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
 
   const _val = resolveStateMapper(val, sources)
 
-  acc.push({ val: _val, path, isCmp: _isCmp, sinks })
-
   // Return with the accumulator object, and a second boolean value tells
   // the traversal to stop
-  return [acc, true]
+  return [[...acc, { val: _val, path, isCmp: _isCmp, sinks }], true]
 }
 
 function getCmpAutoKey (cmpId, path) {
