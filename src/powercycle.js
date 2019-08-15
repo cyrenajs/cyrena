@@ -33,7 +33,7 @@ import {
 
 import {
   withLocalState
-} from './util'
+} from './util/withLocalState.js'
 
 export const CONFIG = {
   vdomProp: 'react',
