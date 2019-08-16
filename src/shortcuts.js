@@ -6,14 +6,18 @@ import xs from 'xstream'
 
 import {
   VDOM_ELEMENT_FLAG,
-  $_PROXY_GET_PATH,
-  $_PROXY_BASE_STREAM,
   STATE_MAPPER,
   typeSymbols,
   isElement,
   isStream,
   isDomElement
 } from './dynamictypes.js'
+
+import {
+  PLACEHOLDER,
+  RESOLVE,
+  BASE_STREAM
+} from './placeholder.js'
 
 import {
   pragma,
@@ -303,38 +307,19 @@ export function resolveEventProps(vdom, { mergeFn }) {
   return true
 }
 
-// Allows the following shortcuts:
-// $ --> $get()
-// $.foo.bar --> $get('foo.bar')
-// $(stream).foo.bar --> $get('foo.bar', stream)
-export const $ = (function $$ (path = [], baseStream = undefined) {
-  const $proxyTarget = Object.assign(
-    function () {}, // make it appliable
-    { [$_PROXY_GET_PATH]: path,
-      [$_PROXY_BASE_STREAM]: baseStream }
-  )
-
-  return new Proxy($proxyTarget, {
-    get (target, prop) {
-      return typeof prop === 'symbol' // $_PROXY_GET_PATH || prop === $_PROXY_BASE_STREAM
-        ? target[prop]
-        : $$([...path, prop], baseStream)
-    },
-    apply (target, thisArg, args) {
-      return args[0][$_PROXY_GET_PATH] // already a proxy?
-        ? args[0]
-        : $$(path, args[0])
-    }
-  })
-})()
-
 export function resolve$Proxy (val) {
-  return val && val[$_PROXY_GET_PATH]
-    ? $get(val[$_PROXY_GET_PATH].join('.'), val[$_PROXY_BASE_STREAM])
-    : val
+  if (val && val[PLACEHOLDER] && val[BASE_STREAM]) {
+    return val[RESOLVE]()
+  }
+
+  if (val && val[PLACEHOLDER]) {
+    return createStateMapper(val[RESOLVE])
+  }
+
+  return val
 }
 
-export function createStateMapper(fn) {
+export function createStateMapper (fn) {
   return Object.assign(fn, {
     [STATE_MAPPER]: true
   })

@@ -27,9 +27,13 @@ import {
 } from './shortcuts.js'
 
 import {
-  $_PROXY_GET_PATH,
   isStream
 } from './dynamictypes.js'
+
+import {
+  PLACEHOLDER,
+  RESOLVE
+} from './placeholder.js'
 
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
@@ -82,8 +86,8 @@ export const pickerLens = (...keys) => ({
 // just a shallow merger
 export const mergeWith = src => obj => {
   return mergeDeep(obj, src, (oldVal, newVal) => {
-    return newVal && newVal[$_PROXY_GET_PATH]
-      ? _get(newVal[$_PROXY_GET_PATH])(obj)
+    return newVal && newVal[PLACEHOLDER]
+      ? newVal[RESOLVE](obj)
       : newVal
   })
 }

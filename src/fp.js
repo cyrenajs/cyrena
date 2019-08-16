@@ -52,13 +52,14 @@ export const zip = (...arrays) =>
 export const merge = (obj, src, customizer = (oldVal, newVal) => newVal) =>
   Object.keys(src).reduce((cum, key) =>
     ({ ...cum, [key]: customizer(cum[key], src[key]) }),
-    { ...obj }
+    clone(obj)
   )
 
 export const mergeDeep = (obj, src, customizer = (oldVal, newVal) => newVal) => {
   return merge(obj, src, (oldVal, newVal) => {
     const _newVal = customizer(oldVal, newVal)
-    return isObject(oldVal) && isObject(_newVal)
+    return isObject(oldVal) && !Array.isArray(oldVal) &&
+       isObject(_newVal) && !Array.isArray(_newVal)
       ? mergeDeep(oldVal, _newVal, customizer)
       : _newVal
   })
@@ -104,3 +105,5 @@ export const not = predicate => (...args) =>
 export const arrayPush = newItem => baseArr => {
   return [...baseArr, newItem]
 }
+
+export const identity = x => x

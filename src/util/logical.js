@@ -6,9 +6,12 @@ import {
 } from '../util.js'
 
 import {
-  resolveStateMapper,
-  $
+  resolveStateMapper
 } from '../shortcuts.js'
+
+import {
+  $
+} from '../placeholder.js'
 
 export function getConditionalCmp (cond$, getCmp) {
   return getDynamicCmp (

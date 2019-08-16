@@ -28,12 +28,17 @@ import {
   resolveEventProps,
   resolve$Proxy,
   resolveStateMapper,
+  createStateMapper,
   isStateMapper
 } from './shortcuts.js'
 
 import {
   withLocalState
 } from './util/withLocalState.js'
+
+import {
+  RESOLVE, PLACEHOLDER
+} from './placeholder.js'
 
 export const CONFIG = {
   vdomProp: 'react',
@@ -97,16 +102,6 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
   // We pass key and props in the sources object
   const sources = (_isCmp || _isStateMapper) && {
     ...config.sources,
-
-    // Previously this looked like below, with the reasoning that isolation
-    // wrapping makes outer props lost, but I actually couldn't reproduce that.
-    // Besides that, it certainly causes an issue that outer components'
-    // props can appear on their immediate children, so for now it's best to
-    // remove it.
-    // props: {
-    //   ...config.sources.props,
-    //   ...val.props
-    // }
 
     props: val.props
   }

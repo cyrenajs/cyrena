@@ -17,8 +17,6 @@ import { Stream } from 'xstream'
 import { get } from './fp.js'
 
 export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
-export const $_PROXY_GET_PATH = Symbol('powercycle.$_proxy_get_path')
-export const $_PROXY_BASE_STREAM = Symbol('powercycle.$_base_stream')
 export const STATE_MAPPER = Symbol('powercycle.state_mapper')
 
 // This is only needed to allow such shortcuts with shortcuts/powerUpSources:
@@ -27,8 +25,6 @@ export const STATE_MAPPER = Symbol('powercycle.state_mapper')
 // with it this list.
 export const typeSymbols = [
   VDOM_ELEMENT_FLAG,
-  $_PROXY_GET_PATH,
-  $_PROXY_BASE_STREAM,
   STATE_MAPPER
 ]
 
