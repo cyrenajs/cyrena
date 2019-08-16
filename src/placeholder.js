@@ -8,7 +8,7 @@ import { identity } from './fp.js'
 
 function reduce (resolvePath, base) {
   return resolvePath.reduce(
-    (cum, next, idx, arr) => [...cum, next(...cum.slice(-2))],
+    (cum, next) => [...cum, next(...cum.slice(-2))],
     [base]
   ).slice(-1)[0]
 }
