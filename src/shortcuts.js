@@ -10,7 +10,8 @@ import {
   typeSymbols,
   isElement,
   isStream,
-  isDomElement
+  isDomElement,
+  isPrimitive
 } from './dynamictypes.js'
 
 import {
@@ -50,13 +51,15 @@ import {
 export const resolveShorthandOutput = cmp => sources => {
   const output = castArray(cmp(powerUpSources(sources)))
 
-  return isElement(output[0])
-    // it's a shorthand return value: vdom, eventSinks, optional sources
+  return isElement(output[0]) || isPrimitive(output[0])
+    // it's a shorthand return value
     ? powercycle(
-      output[0],
-      output[1],
-      output[2] || sources
-    )
+        isPrimitive(output[0])
+          ? pragma(Fragment, null, output[0])
+          : output[0],
+        output[1],
+        output[2] || sources
+      )
     // it's a regular cyclejs sinks object
     : output[0]
 }

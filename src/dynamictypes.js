@@ -28,6 +28,11 @@ export const typeSymbols = [
   STATE_MAPPER
 ]
 
+export function isPrimitive(val) {
+  return val == null || typeof val === 'string' || typeof val === 'boolean' ||
+    typeof val === 'number'
+}
+
 export function isComponentNode (node) {
   return node &&
     node[VDOM_ELEMENT_FLAG] &&
