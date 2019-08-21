@@ -13,15 +13,28 @@ import {
   $
 } from '../placeholder.js'
 
-export function getConditionalCmp (cond$, getCmp) {
+import {
+  isStream
+} from '../dynamictypes.js'
+
+import xs, { MemoryStream } from 'xstream'
+
+export function getConditionalCmp (cond, getCmp) {
+  const cond$ = isStream(cond)
+    ? cond
+    // xs.of() is insufficient, because it must be a memory stream
+    : xs.create().startWith(cond)
+
+  if (!(cond$ instanceof MemoryStream)) {
+    console.warn('Conditional stream should be a MemoryStream')
+  }
+
   return getDynamicCmp (
     cond$.fold(
       (acc, next) => ({ cond: next, key: String(Boolean(next)) }),
       { cond: false, key: 'false' }
     ),
-    next => {
-      return getCmp(next.cond)
-    }
+    next => getCmp(next.cond)
   )
 }
 

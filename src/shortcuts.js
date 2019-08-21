@@ -188,7 +188,7 @@ export function resolveScopeProp(vdom) {
 }
 
 export function resolveIfProp(vdom) {
-  if (!isElement(vdom) || !vdom.props.if) {
+  if (!isElement(vdom) || !({}).hasOwnProperty.call(vdom.props, 'if')) {
     return
   }
 
@@ -196,23 +196,18 @@ export function resolveIfProp(vdom) {
 
   wrapVdom(
     vdom,
-    (type, props, children) =>
-      sources => {
-        return getConditionalCmp(
-          resolveStateMapper(cond, sources),
-          cond => {
-            return sources => {
-              return powercycle(
-                cond
-                  ? pragma(type, props, ...castArray(children))
-                  : pragma(Fragment),
-                null,
-                sources
-              )
-            }
-          }
-        )(sources)
-      },
+    (type, props, children) => sources => {
+      return getConditionalCmp(
+        resolveStateMapper(cond, sources),
+        cond => sources => powercycle(
+          cond
+            ? pragma(type, props, ...castArray(children))
+            : pragma(Fragment),
+          null,
+          sources
+        )
+      )(sources)
+    },
     ['if'],
     {}
   )
