@@ -63,8 +63,8 @@ export function Collection (sources) {
 
   const collectionCmp = makeCollection({
     item: CollectionItem,
-    // I'm not sure what it's for. From cycle's source, it seems like that it
-    // serves as an isolation base, but we already have isolation on the items...
+    // It's the key getter upon which cyclejs decides if a component should be
+    // re-instantiated or not on a next emit.
     // itemKey: (childState, index) => String(index),
     channel,
     itemScope: sources.props.itemscope || (key => key),
