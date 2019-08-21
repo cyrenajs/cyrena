@@ -1,11 +1,13 @@
 import { pragma, Fragment } from '../reactpragma.js'
-import { makeCollection } from '@cycle/state'
+import { makeCollection, Instances } from '@cycle/state'
 import { powercycle, CONFIG } from '../powercycle.js'
 import isolate from '@cycle/isolate'
 import xs from 'xstream'
 
 import {
-  getPathLens
+  getPathLens,
+  resolveStateMapper,
+  resolveShorthandOutput
 } from '../shortcuts.js'
 
 import { wrapInComponent } from '../util.js'
@@ -13,6 +15,67 @@ import { wrapInComponent } from '../util.js'
 import {
   omit, mapValues, castArray
 } from '../fp.js'
+
+// Returns with a collection component based on the given stream. Options is
+// either a function returning a ShorthandComponent or a config object.
+// Options.keyProp specficies the key upon which it decides if a component
+// should be recreated or not, on a stream emit. Options.itemCmp is the item
+// component. The item components will receive the following props in
+// sources.props: index, item, collection. It's a cleaner solution for
+// collections than the Collection component, still doing a state-based contract.
+export const collection = (stream, options) => {
+  const itemCmp = typeof options === 'function'
+    ? options
+    : options.itemCmp
+
+  return sources => {
+    const _stream = resolveStateMapper(stream, sources)
+
+    const instances$ = _stream.fold(function (acc, next) {
+      const nextInstArray = Array(next.length);
+      const keys = new Set();
+
+      for (let i = 0; i < next.length; ++i) {
+        const key = options.keyProp ? next[i][options.keyProp] : i
+
+        keys.add(key);
+
+        if (!acc.dict.has(key)) {
+          const sinks = resolveShorthandOutput(itemCmp)({
+            ...sources,
+            props: {
+              ...sources.props,
+              index: i,
+              item: next[i],
+              collection: next
+            }
+          })
+
+          acc.dict.set(key, sinks);
+          nextInstArray[i] = sinks;
+
+        } else {
+          nextInstArray[i] = acc.dict.get(key);
+        }
+
+        nextInstArray[i]._key = key;
+      }
+
+      acc.dict.forEach(function (_, key) {
+        if (!keys.has(key)) {
+            acc.dict.delete(key);
+        }
+      })
+
+      keys.clear();
+
+      return { dict: acc.dict, arr: nextInstArray };
+
+    }, { dict: new Map(), arr: [] })
+
+    return collectSinksBasedOnSource(sources)(new Instances(instances$))
+  }
+}
 
 export const COLLECTION_DELETE =
   prevState => undefined
@@ -63,8 +126,8 @@ export function Collection (sources) {
 
   const collectionCmp = makeCollection({
     item: CollectionItem,
-    // It's the key getter upon which cyclejs decides if a component should be
-    // re-instantiated or not on a next emit.
+    // I'm not sure what it's for. From cycle's source, it seems like that it
+    // serves as an isolation base, but we already have isolation on the items...
     // itemKey: (childState, index) => String(index),
     channel,
     itemScope: sources.props.itemscope || (key => key),
