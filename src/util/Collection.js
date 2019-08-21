@@ -45,9 +45,9 @@ export const collection = (stream, options) => {
             ...sources,
             props: {
               ...sources.props,
-              index: i,
-              item: next[i],
-              collection: next
+              index: i, // todo: it should be a stream
+              item$: _stream.map(collection => collection[i]),
+              collection$: _stream
             }
           })
 

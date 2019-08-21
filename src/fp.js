@@ -37,7 +37,7 @@ export const compact = array =>
 export const omit = keys => obj =>
   castArray(keys).reduce(
     (cum, key) => (delete cum[key], cum),
-    { ...obj }
+    clone(obj)
   )
 
 export const pick = keys => obj =>
@@ -55,13 +55,18 @@ export const merge = (obj, src, customizer = (oldVal, newVal) => newVal) =>
     clone(obj)
   )
 
+// This is quite sophisticated, I mean the condition in the customizer. It's
+// tuned for collection item reducers. You can slice a collection (oldVal and
+// newVal are both arrays), and you can modify individual items by merging an
+// object onto the array with the corresponding index keys.
 export const mergeDeep = (obj, src, customizer = (oldVal, newVal) => newVal) => {
-  return merge(obj, src, (oldVal, newVal) => {
-    const _newVal = customizer(oldVal, newVal)
+  return merge(obj, src, (oldVal, _newVal) => {
+    const newVal = customizer(oldVal, _newVal)
 
-    return isObject(oldVal) && isObject(newVal)
-      ? mergeDeep(oldVal, _newVal, customizer)
-      : _newVal
+    return Array.isArray(oldVal) && Array.isArray(newVal) ||
+      !isObject(oldVal) || !isObject(newVal)
+        ? newVal
+        : mergeDeep(oldVal, newVal, customizer)
   })
 }
 
