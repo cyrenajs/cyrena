@@ -61,6 +61,14 @@ export const resolveShorthandOutput = cmp => sources => {
     : output[0]
 }
 
+export function resolveShorthandComponent (shorthandComponent) {
+  return resolveShorthandOutput(
+    typeof shorthandComponent === 'function'
+      ? shorthandComponent
+      : () => shorthandComponent
+  )
+}
+
 export function getPathLens(path) {
   const pathArr = path.split('.')
 

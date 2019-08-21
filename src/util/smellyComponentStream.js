@@ -1,5 +1,5 @@
 import {
-  resolveShorthandOutput
+  resolveShorthandComponent
 } from '../shortcuts.js'
 
 import {
@@ -41,9 +41,5 @@ import {
  * world, so you should probably just never use this function.
  */
 export function smellyComponentStream (stream) {
-  return getDynamicCmp(stream, streamValue => {
-    return resolveShorthandOutput(
-      typeof streamValue === 'function' ? streamValue : () => streamValue
-    )
-  })
+  return getDynamicCmp(stream, resolveShorthandComponent)
 }
