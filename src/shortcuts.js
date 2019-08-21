@@ -197,11 +197,9 @@ export function resolveIfProp(vdom) {
   wrapVdom(
     vdom,
     (type, props, children) =>
-
       sources => {
-
         return getConditionalCmp(
-          resolveStateMapper(resolve$Proxy(cond), sources),
+          resolveStateMapper(cond, sources),
           cond => {
             return sources => {
               return powercycle(
@@ -214,10 +212,7 @@ export function resolveIfProp(vdom) {
             }
           }
         )(sources)
-
-      }
-
-      ,
+      },
     ['if'],
     {}
   )
