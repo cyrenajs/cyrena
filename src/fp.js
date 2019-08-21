@@ -51,15 +51,15 @@ export const zip = (...arrays) =>
 
 export const merge = (obj, src, customizer = (oldVal, newVal) => newVal) =>
   Object.keys(src).reduce((cum, key) =>
-    ({ ...cum, [key]: customizer(cum[key], src[key]) }),
+    Object.assign(cum, { [key]: customizer(cum[key], src[key]) }),
     clone(obj)
   )
 
 export const mergeDeep = (obj, src, customizer = (oldVal, newVal) => newVal) => {
   return merge(obj, src, (oldVal, newVal) => {
     const _newVal = customizer(oldVal, newVal)
-    return isObject(oldVal) && !Array.isArray(oldVal) &&
-       isObject(_newVal) && !Array.isArray(_newVal)
+
+    return isObject(oldVal) && isObject(newVal)
       ? mergeDeep(oldVal, _newVal, customizer)
       : _newVal
   })
