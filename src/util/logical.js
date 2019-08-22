@@ -53,8 +53,8 @@ export const $if = ($cond, $then, $else) => {
   return $map(cond => cond ? $then : $else, $cond)
 }
 
-export const $not = mapper => {
-  return $map(state => !mapper(state))
+export const $not = src => {
+  return $map(val => !val, src)
 }
 
 export const $and = (...conditions) => {
