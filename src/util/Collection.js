@@ -35,8 +35,8 @@ export const collection = (stream, options) => {
       const nextInstArray = Array(next.length);
       const keys = new Set();
 
-      for (let i = 0; i < next.length; ++i) {
-        const key = options.keyProp ? next[i][options.keyProp] : i
+      for (let idx = 0; idx < next.length; ++idx) {
+        const key = options.keyProp ? next[idx][options.keyProp] : idx
 
         keys.add(key);
 
@@ -45,20 +45,24 @@ export const collection = (stream, options) => {
             ...sources,
             props: {
               ...sources.props,
-              index: i, // todo: it should be a stream
-              item$: _stream.map(collection => collection[i]),
-              collection$: _stream
+              index: idx, // todo: it should be a stream
+              item$: _stream.map(coll => coll[idx]).startWith(next[idx]),
+              collection$: _stream.startWith(next),
+              initialValues: {
+                item: next[idx],
+                collection: next
+              }
             }
           })
 
           acc.dict.set(key, sinks);
-          nextInstArray[i] = sinks;
+          nextInstArray[idx] = sinks;
 
         } else {
-          nextInstArray[i] = acc.dict.get(key);
+          nextInstArray[idx] = acc.dict.get(key);
         }
 
-        nextInstArray[i]._key = key;
+        nextInstArray[idx]._key = key;
       }
 
       acc.dict.forEach(function (_, key) {

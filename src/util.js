@@ -92,8 +92,6 @@ export const mergeWith = src => obj => {
   })
 }
 
-
-
 // Helper function to easily access state parts in the vdom.
 // src can be any of these 4:
 // - stream
