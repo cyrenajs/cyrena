@@ -1,3 +1,5 @@
+export const identity = x => x
+
 export const isObject = val =>
   val && typeof val === 'object'
 
@@ -40,9 +42,19 @@ export const omit = keys => obj =>
     clone(obj)
   )
 
+export const pickBy = (fn = identity) => obj =>
+  Object.keys(obj).reduce(
+    (cum, key) => fn(obj[key])
+      ? Object.assign(cum, { [key]: obj[key] })
+      : cum,
+    {}
+  )
+
 export const pick = keys => obj =>
   castArray(keys).reduce(
-    (cum, key) => Reflect.has(obj, key) ? ({ ...cum, [key]: obj[key] }) : cum,
+    (cum, key) => Reflect.has(obj, key)
+      ? Object.assign(cum, { [key]: obj[key] })
+      : cum,
     {}
   )
 
@@ -110,5 +122,3 @@ export const not = predicate => (...args) =>
 export const arrayPush = newItem => baseArr => {
   return [...baseArr, newItem]
 }
-
-export const identity = x => x
