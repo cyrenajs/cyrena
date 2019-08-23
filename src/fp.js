@@ -17,7 +17,7 @@ export const mapValues = fn => obj =>
         )
   )
 
-export const clone = mapValues(x => x)
+export const clone = mapValues(identity)
 
 export const cloneDeepWith = customizer => obj =>
   defaultTo(
