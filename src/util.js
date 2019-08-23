@@ -74,7 +74,7 @@ export function wrapInComponent(...values) {
   }
 }
 
-export const pickerLens = (...keys) => ({
+export const pickLens = (...keys) => ({
   get: pick(keys),
   set: (outer, inner) => ({ ...outer, ...pick(keys)(inner) })
 })
