@@ -6,6 +6,9 @@ export const BASE_STREAM = Symbol('powercycle.placeholder_base_stream')
 import xs from 'xstream'
 import { identity } from './fp.js'
 
+export const isPlaceholder = val =>
+  val && val[PLACEHOLDER]
+
 function reduce (resolvePath, base) {
   return resolvePath.reduce(
     (cum, next) => [...cum, next(...cum.slice(-2))],

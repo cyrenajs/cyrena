@@ -15,6 +15,7 @@
 
 import { Stream } from 'xstream'
 import { get } from './fp.js'
+import { isPlaceholder } from './placeholder.js'
 
 export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
 export const STATE_MAPPER = Symbol('powercycle.state_mapper')
@@ -52,7 +53,9 @@ export function isElement (val) {
 export function isStream (val) {
   let _isStream = val instanceof Stream
 
-  if (!_isStream && /^(?:Memory)Stream$/i.test(get(['constructor', 'name'])(val))) {
+  if (!_isStream && !isPlaceholder(val) &&
+    /^(?:Memory)Stream$/i.test(get(['constructor', 'name'])(val))
+  ) {
     console.warn('Powercycle\'s stream detection failed on an object with an ' +
       'instanceof check, but it pretty much seems like a stream. It\'s probably ' +
       'a double xstream instance problem on codesandbox.')
