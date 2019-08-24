@@ -43,7 +43,7 @@ export const omit = keys => obj =>
   )
 
 export const pickBy = (fn = identity) => obj =>
-  Object.keys(obj).reduce(
+  Object.keys(Object(obj)).reduce(
     (cum, key) => fn(obj[key])
       ? Object.assign(cum, { [key]: obj[key] })
       : cum,
