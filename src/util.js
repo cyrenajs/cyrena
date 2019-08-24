@@ -20,7 +20,7 @@ import {
 } from '@cycle/state'
 
 import {
-  resolve$Proxy,
+  resolvePlaceholder,
   isStateMapper,
   createStateMapper,
   resolveStateMapper,
@@ -99,8 +99,8 @@ export const mergeWith = src => obj => {
 // If src is a sources object, then the mapper will occur on
 // src.state.stream
 export const $map = (fn, src) => {
-  const _src = resolve$Proxy(src)
-  const _fn = resolve$Proxy(fn)
+  const _src = resolvePlaceholder(src)
+  const _fn = resolvePlaceholder(fn)
 
   return (
     isStream(_src)

@@ -308,7 +308,7 @@ export function resolveEventProps(vdom, { mergeFn }) {
   return true
 }
 
-export function resolve$Proxy (val) {
+export function resolvePlaceholder (val) {
   if (val && val[PLACEHOLDER] && val[BASE_STREAM]) {
     return val[RESOLVE]()
   }
@@ -332,7 +332,7 @@ export function isStateMapper (fn) {
 }
 
 export function resolveStateMapper (fn, src) {
-  const _fn = resolve$Proxy(fn)
+  const _fn = resolvePlaceholder(fn)
   return isStateMapper(_fn)
     ? src.state.stream.map(_fn)
     : _fn

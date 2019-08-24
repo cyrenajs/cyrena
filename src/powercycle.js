@@ -26,7 +26,7 @@ import {
   injectAutoSel,
   resolveScopeOrIfProp,
   resolveEventProps,
-  resolve$Proxy,
+  resolvePlaceholder,
   resolveStateMapper,
   createStateMapper,
   isStateMapper
@@ -70,7 +70,7 @@ function handleAutoScope(cmp, props = {}, vdomProp) {
 }
 
 const makeTraverseAction = config => (acc, __val, path, root) => {
-  const val = resolve$Proxy(__val)
+  const val = resolvePlaceholder(__val)
 
   const _isStream = isStream(val)
   const _isRegularCmp = isComponentNode(val)

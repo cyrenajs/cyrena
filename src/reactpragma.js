@@ -2,7 +2,7 @@ import { jsxFactory } from '@cycle/react-dom'
 export { Fragment } from 'react'
 import { clone } from './fp.js'
 import { createElement } from './dynamictypes.js'
-import { resolve$Proxy } from './shortcuts.js'
+import { resolvePlaceholder } from './shortcuts.js'
 
 // De-freeze the vdom element which React freezes. It allows us to fill-up
 // placeholders, though it's not needed for that purpose atm, because
@@ -23,7 +23,7 @@ function deFreezeElement(element) {
 }
 
 export function pragma(node, props, ...children) {
-  const $children = children.map(resolve$Proxy)
+  const $children = children.map(resolvePlaceholder)
 
   let element = jsxFactory.createElement(node, props, ...$children)
 

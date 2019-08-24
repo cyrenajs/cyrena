@@ -6,6 +6,7 @@ import {
 } from '../util.js'
 
 import {
+  isStateMapper,
   resolveStateMapper
 } from '../shortcuts.js'
 
@@ -58,30 +59,43 @@ export const $not = src => {
 }
 
 export const $and = (...conditions) => {
+  const andReducer = (acc, next) => acc && next
+  const combined = $combine(...conditions)
+
+  if (isStream(combined)) {
+    return combined.map(values => values.reduce(andReducer, true))
+  }
+
   return $map(
-    state => {
-      return $combine(...conditions)(state).reduce((acc, next) => acc && next, true)
-    }
+    state => combined(state).reduce(andReducer, true)
   )
 }
 
 export const $combine = (...mappers) => {
-  return $map(state => {
-    return mappers.map(mapper => {
-      return $map(mapper)(state)
+  if (mappers.every(isStream)) {
+    return xs.combine(...mappers)
+  }
+
+  if (!mappers.some(isStream)) {
+    return $map(state => {
+      return mappers.map(mapper => {
+        return $map(mapper)(state)
+      })
     })
-  })
+  }
+
+  throw new Error(
+    'Powercycle/$combine: mixing state mappers and streams is not yet supported.'
+  )
 }
 
 export const $or = (...conditions) => {
   return $not($and(...conditions.map($not)))
 }
 
-export const $eq = (val1, val2) => {
+export const $eq = (...args) => {
   return $map(
-    values => {
-      return values[0] === values[1]
-    },
-    $combine(val1, val2 !== undefined ? val2 : $)
+    values => values[0] === values[1],
+    $combine(args[0], args.length > 1 ? args[1] : $)
   )
 }
