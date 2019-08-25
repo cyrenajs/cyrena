@@ -35,6 +35,8 @@ import {
   RESOLVE
 } from './placeholder.js'
 
+import xs from 'xstream'
+
 // This is just a dummy component to serve as a lens or collection item
 // container for a sub-vdom.
 export function Scope (sources) {
@@ -91,6 +93,37 @@ export const mergeWith = src => obj => {
       : newVal
   })
 }
+
+export function request (url$, sources) {
+  const category = uniqueId()
+
+  const request$ = url$.map(url => ({ url, category }))
+
+  const response$ =
+    sources.HTTP
+      .select(category)
+      .map(resp$ => resp$.replaceError(err => xs.of(err)))
+      .flatten()
+
+  const content$ =
+    response$
+      .filter(resp => !(resp instanceof Error))
+      .map(resp => JSON.parse(resp.text))
+      .remember()
+
+  const isLoading$ = xs.merge(
+    request$.mapTo(true),
+    response$.mapTo(false)
+  ).startWith(false)
+
+  const errorMessage$ =
+    response$
+      .filter(resp => resp instanceof Error)
+      .startWith('')
+
+  return { request$, content$, isLoading$, errorMessage$ }
+}
+
 
 // Helper function to easily access state parts in the vdom.
 // src can be any of these 4:
