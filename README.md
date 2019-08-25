@@ -8,7 +8,7 @@ function Timer(sources) {
 }
 ```
 
-See the examples below:
+Basic examples:
 * [Hello World](https://codesandbox.io/s/94n4j2vxmw)
 * [Timer](https://codesandbox.io/s/1znx4w2xwq)
 * [Counter](https://codesandbox.io/s/5w53z5401p)
@@ -16,8 +16,12 @@ See the examples below:
 * [Todo List - simple](https://codesandbox.io/s/n7m44yjo0j)
 * [Todo List - advanced](https://codesandbox.io/s/2wv3r9ojqp)
 * [React component with Cycle state](https://codesandbox.io/s/74lnv0wy3j)
+
+App examples:
+
 * [Tic Tac Toe](https://codesandbox.io/s/github/sarimarton/tic-tac-toe-powercycle)
-* [A full showcase](https://codesandbox.io/s/github/sarimarton/powercycle-showcase)
+* [TMDb UI](https://codesandbox.io/s/github/sarimarton/tmdb-ui-powercycle)
+* [Testing dashboard](https://codesandbox.io/s/github/sarimarton/powercycle-showcase)
 
 ## Motivation
 <details>
