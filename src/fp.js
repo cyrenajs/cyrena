@@ -1,21 +1,21 @@
-export const identity = x => x
+export const identity = val => val
 
 export const isObject = val =>
   val && typeof val === 'object'
 
-// It differs from the Lodash version!
+// It differs from the Lodash version
 export const defaultTo = (val, getDefaultValue) =>
   val == null ? getDefaultValue() : val
 
 export const mapValues = fn => obj =>
-  !isObject(obj) ? obj : (
-    Array.isArray(obj)
-      ? obj.map(fn)
-      : Object.keys(obj).reduce(
-          (cum, key) => ({ ...cum, [key]: fn(obj[key], key) }),
-          {}
-        )
-  )
+  !isObject(obj)
+    ? obj :
+  Array.isArray(obj)
+    ? obj.map(fn)
+    : Object.keys(obj).reduce(
+        (cum, key) => ({ ...cum, [key]: fn(obj[key], key) }),
+        {}
+      )
 
 export const clone = mapValues(identity)
 
@@ -119,6 +119,5 @@ export const forEach = (obj, fn) =>
 export const not = predicate => (...args) =>
   !predicate(...args)
 
-export const arrayPush = newItem => baseArr => {
-  return [...baseArr, newItem]
-}
+export const arrayPush = newItem => baseArr =>
+  [...baseArr, newItem]
