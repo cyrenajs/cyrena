@@ -126,7 +126,6 @@ export function request (url$, sources) {
 
 
 // Helper function to easily access state parts in the vdom.
-// src can be any of these:
 export const $map = (fn, src) => {
   const _src = resolvePlaceholder(src)
   const _fn = resolvePlaceholder(fn)
