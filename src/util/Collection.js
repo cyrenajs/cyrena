@@ -13,12 +13,12 @@ import {
 import { wrapInComponent } from '../util.js'
 
 import {
-  omit, mapValues, castArray
+  omit, mapValues, castArray, uniqueId, get
 } from '../fp.js'
 
 // Returns with a collection component based on the given stream. Options is
 // either a function returning a ShorthandComponent or a config object.
-// Options.keyProp specficies the key upon which it decides if a component
+// Options.key specficies the key upon which it decides if a component
 // should be recreated or not, on a stream emit. Options.itemCmp is the item
 // component. The item components will receive the following props in
 // sources.props: index, item, collection. It's a cleaner solution for
@@ -28,17 +28,25 @@ export const collection = (stream, options) => {
     ? options
     : options.itemCmp
 
+  const getKey =
+    typeof options.itemKey === 'function'
+      ? options.itemKey :
+    typeof options.itemKey === 'string'
+      ? get(options.itemKey) :
+    options.itemKey === null
+      ? () => uniqueId() :
+    (item, idx) => idx
+
   return sources => {
     const _stream = resolveStateMapper(stream, sources)
 
-    const instances$ = _stream.fold(function (acc, next) {
-      const nextInstArray = Array(next.length);
-      const keys = new Set();
+    const instances$ = _stream.fold(function (acc, nextArr) {
+      const keys = new Set()
 
-      for (let idx = 0; idx < next.length; ++idx) {
-        const key = options.keyProp ? next[idx][options.keyProp] : idx
+      const nextInstArray = nextArr.reduce((cum, nextRecord, idx) => {
+        const key = getKey(nextRecord, idx)
 
-        keys.add(key);
+        keys.add(key)
 
         if (!acc.dict.has(key)) {
           const sinks = resolveShorthandOutput(itemCmp)({
@@ -46,34 +54,26 @@ export const collection = (stream, options) => {
             props: {
               ...sources.props,
               index: idx, // todo: it should be a stream
-              item$: _stream.map(coll => coll[idx]).startWith(next[idx]),
-              collection$: _stream.startWith(next),
-              initialValues: {
-                item: next[idx],
-                collection: next
-              }
+              item$: _stream.map(coll => coll[idx]).startWith(nextRecord),
+              collection$: _stream.startWith(nextArr)
             }
           })
 
-          acc.dict.set(key, sinks);
-          nextInstArray[idx] = sinks;
-
-        } else {
-          nextInstArray[idx] = acc.dict.get(key);
+          acc.dict.set(key, sinks)
         }
 
-        nextInstArray[idx]._key = key;
-      }
+        return cum.concat({ ...acc.dict.get(key), _key: key })
+      }, [])
 
-      acc.dict.forEach(function (_, key) {
+      acc.dict.forEach((_, key) => {
         if (!keys.has(key)) {
-            acc.dict.delete(key);
+          acc.dict.delete(key)
         }
       })
 
-      keys.clear();
+      keys.clear()
 
-      return { dict: acc.dict, arr: nextInstArray };
+      return { dict: acc.dict, arr: nextInstArray }
 
     }, { dict: new Map(), arr: [] })
 
@@ -130,9 +130,11 @@ export function Collection (sources) {
 
   const collectionCmp = makeCollection({
     item: CollectionItem,
-    // I'm not sure what it's for. From cycle's source, it seems like that it
-    // serves as an isolation base, but we already have isolation on the items...
+
+    // It might be relevant, when a collection item sink calculates something
+    // based on the initial value.
     // itemKey: (childState, index) => String(index),
+
     channel,
     itemScope: sources.props.itemscope || (key => key),
     collectSinks: collectSinksBasedOnSource({
