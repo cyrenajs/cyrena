@@ -57,7 +57,7 @@ export function createDefaultStateMerger () {
  * Our version has some improvements over Jan's implementation. Both channels
  * are initiated with an empty startWith, which guarantees that an initial
  * reducer initalState$ = xs.of(prev => ({ ...prev, ...localKeys })) will work
- * propertly (with the oritinal solution, a delay was needed as a workaround).
+ * properly (with the original solution, a delay was needed as a workaround).
  * Then, we drop these two initial emits in the component state. The component
  * MUST create an xs.of-style initial reducer. On the output side, the reducer
  * will receive the correct global state from the sampleCombine. I'm tired to
