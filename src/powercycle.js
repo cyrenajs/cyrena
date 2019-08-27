@@ -4,7 +4,6 @@ import {
   clonePath
 } from './fp.js'
 
-import { withState } from '@cycle/state'
 import xs, { Stream } from 'xstream'
 import isolate from '@cycle/isolate'
 export { makeDOMDriver } from '@cycle/react-dom'
@@ -214,6 +213,6 @@ export const component = powercycle
 // return values. An initial powercycle() call makes the component managed,
 // so the sources object is passed to every component child in the tree.
 export default Object.assign(
-  Cmp => withState(sources => powercycle(pragma(Cmp), null, sources)),
+  Cmp => sources => powercycle(pragma(Cmp), null, sources),
   { pragma, Fragment }
 )
