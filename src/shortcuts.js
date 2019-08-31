@@ -15,6 +15,7 @@ import {
 } from './dynamictypes.js'
 
 import {
+  isPlaceholder,
   PLACEHOLDER,
   RESOLVE,
   BASE_STREAM
@@ -270,15 +271,17 @@ export function resolveEventProps(vdom, { mergeFn }) {
   const getInlineCmp = (type, props, children) => sources => {
     const sinks = {}
 
-    forEach(eventProps, (handler, propKey) => {
-      const _handler = typeof handler === 'function'
-        ? { state: stream => stream.map(handler) }
-        : handler
+    forEach(eventProps, (_handlers, propKey) => {
+      const handlers = typeof _handlers === 'function'
+        ? { state: stream => stream.map(_handlers) }
+        : _handlers
 
       const eventNameDom = propKey.replace(/^on/, '').toLowerCase()
 
-      forEach(_handler, (handler, channel) => {
-        const stream = handler(sources.sel[sel][eventNameDom])
+      forEach(handlers, (handler, channel) => {
+        const stream = isPlaceholder(handler)
+          ? handler[RESOLVE](sources.sel[sel][eventNameDom])
+          : handler(sources.sel[sel][eventNameDom])
 
         sinks[channel] = !sinks[channel]
           ? stream
