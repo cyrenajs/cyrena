@@ -148,21 +148,6 @@ export function injectAutoSel(vdom) {
       )
 }
 
-// Copied from https://reactjs.org/docs/events.html
-const EVENT_PROPS = (
-  'Copy|Cut|Paste|CompositionEnd|CompositionStart|CompositionUpdate|KeyDown|' +
-  'KeyPress|KeyUp|Focus|Blur|Change|Input|Invalid|Submit|Click|ContextMenu|' +
-  'DoubleClick|Drag|DragEnd|DragEnter|DragExit|DragLeave|DragOver|DragStart|' +
-  'Drop|MouseDown|MouseEnter|MouseLeave|MouseMove|MouseOut|MouseOver|MouseUp|' +
-  'PointerDown|PointerMove|PointerUp|PointerCancel|GotPointerCapture|' +
-  'LostPointerCapture|PointerEnter|PointerLeave|PointerOver|PointerOut|' +
-  'TouchCancel|TouchEnd|TouchMove|TouchStart|Scroll|Wheel|Abort|CanPlay|' +
-  'CanPlayThrough|DurationChange|Emptied|Encrypted|Ended|Error|LoadedData|' +
-  'LoadedMetadata|LoadStart|Pause|Play|Playing|Progress|RateChange|Seeked|' +
-  'Seeking|Stalled|Suspend|TimeUpdate|VolumeChange|Waiting|Load|Error|' +
-  'AnimationStart|AnimationEnd|AnimationIteration|TransitionEnd|Toggle'
-).split('|').map(ev => 'on' + ev)
-
 function wrapVdom(vdom, getInlineCmp, propsToRemove, outerProps) {
   const type = vdom.type
   const children = vdom.props.children
@@ -243,6 +228,21 @@ export function resolveScopeOrIfProp(vdom) {
     }
   }
 }
+
+// Copied from https://reactjs.org/docs/events.html
+const EVENT_PROPS = (
+  'Copy|Cut|Paste|CompositionEnd|CompositionStart|CompositionUpdate|KeyDown|' +
+  'KeyPress|KeyUp|Focus|Blur|Change|Input|Invalid|Submit|Click|ContextMenu|' +
+  'DoubleClick|Drag|DragEnd|DragEnter|DragExit|DragLeave|DragOver|DragStart|' +
+  'Drop|MouseDown|MouseEnter|MouseLeave|MouseMove|MouseOut|MouseOver|MouseUp|' +
+  'PointerDown|PointerMove|PointerUp|PointerCancel|GotPointerCapture|' +
+  'LostPointerCapture|PointerEnter|PointerLeave|PointerOver|PointerOut|' +
+  'TouchCancel|TouchEnd|TouchMove|TouchStart|Scroll|Wheel|Abort|CanPlay|' +
+  'CanPlayThrough|DurationChange|Emptied|Encrypted|Ended|Error|LoadedData|' +
+  'LoadedMetadata|LoadStart|Pause|Play|Playing|Progress|RateChange|Seeked|' +
+  'Seeking|Stalled|Suspend|TimeUpdate|VolumeChange|Waiting|Load|Error|' +
+  'AnimationStart|AnimationEnd|AnimationIteration|TransitionEnd|Toggle'
+).split('|').map(ev => 'on' + ev)
 
 // Makes these shortcuts available for the following:
 //   {src => [<button>Inc</button>, { state: src.el.click.mapTo(prev => prev + 1) }]}
