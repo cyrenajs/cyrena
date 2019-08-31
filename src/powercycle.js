@@ -98,10 +98,9 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
   const cmp =
     _isCmp && handleAutoScope(regularCmp, val.props, config.vdomProp)
 
-  // We pass key and props in the sources object
+  // We pass props into the sources object
   const sources = (_isCmp || _isStateMapper) && {
     ...config.sources,
-
     props: val.props
   }
 
