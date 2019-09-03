@@ -73,7 +73,7 @@ export function resolveShorthandComponent (shorthandComponent) {
   )
 }
 
-export function getPathLens(path) {
+export function getPathLens (path) {
   const pathArr = path.split('.')
 
   return {
@@ -85,7 +85,7 @@ export function getPathLens(path) {
 // Support dot-separated deep scopes - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
-export function resolvePathScope(scope) {
+export function resolvePathScope (scope) {
   return typeof scope !== 'string'
     ? scope
     : {
@@ -139,7 +139,7 @@ export function powerUpSources (sources) {
 
 // Injects sel={SEL_ROOT} automatically on the root element of the VDOM
 // It's used internally with powerUpSources
-export function injectAutoSel(vdom) {
+export function injectAutoSel (vdom) {
   return typeof vdom.type !== 'string' || vdom.props.sel
     ? vdom
     : pragma(
@@ -149,7 +149,7 @@ export function injectAutoSel(vdom) {
       )
 }
 
-function wrapVdom(vdom, getInlineCmp, propsToRemove, outerProps) {
+function wrapVdom (vdom, getInlineCmp, propsToRemove, outerProps) {
   const type = vdom.type
   const children = vdom.props.children
   const props = omit(['children', ...propsToRemove])(vdom.props)
@@ -163,7 +163,7 @@ function wrapVdom(vdom, getInlineCmp, propsToRemove, outerProps) {
   }
 }
 
-export function resolveScopeProp(vdom) {
+export function resolveScopeProp (vdom) {
   if (!isElement(vdom) || !vdom.props.scope) {
     return
   }
@@ -184,7 +184,7 @@ export function resolveScopeProp(vdom) {
   return true
 }
 
-export function resolveIfProp(vdom) {
+export function resolveIfProp (vdom) {
   if (!isElement(vdom) || !({}).hasOwnProperty.call(vdom.props, 'if')) {
     return
   }
@@ -212,7 +212,7 @@ export function resolveIfProp(vdom) {
   return true
 }
 
-export function resolveScopeOrIfProp(vdom) {
+export function resolveScopeOrIfProp (vdom) {
   if (!isElement(vdom)) {
     return
   }
