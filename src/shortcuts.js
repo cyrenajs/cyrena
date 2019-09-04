@@ -1,5 +1,5 @@
 import {
-  clone, omit, get, set, pick, forEach, castArray
+  clone, omit, get, set, pick, pickBy, forEach, castArray, mapValues, compact
 } from './fp.js'
 
 import xs from 'xstream'
@@ -11,7 +11,8 @@ import {
   isElement,
   isStream,
   isDomElement,
-  isPrimitive
+  isPrimitive,
+  isComponentNode
 } from './dynamictypes.js'
 
 import {
@@ -253,11 +254,7 @@ const EVENT_PROPS = (
 //     <button onClick={{ state: ev$ => ev$.mapTo(prev => prev + 1) }}>Inc</button>
 // 2. A callback which maps from event to state:
 //     <button onClick={ev => prev => prev + 1}>Inc</button>
-export function resolveEventProps(vdom, { mergeFn }) {
-  if (!isDomElement(vdom)) {
-    return
-  }
-
+export function resolveDomEventProps (vdom, { mergeFn }) {
   const eventProps = pick(EVENT_PROPS)(vdom.props)
 
   if (Object.keys(eventProps).length === 0) {
@@ -309,6 +306,57 @@ export function resolveEventProps(vdom, { mergeFn }) {
   )
 
   return true
+}
+
+export function resolveComponentEventProps (vdom, { mergeFn }) {
+  const eventProps =
+    pickBy((cfg, prop) => /^on(?:$|-|[A-Z])/.test(prop))(vdom.props)
+
+  const getTriplets = cfg =>
+    Object.keys(cfg).reduce(
+      (cum, channel) => Object.keys(cfg[channel]).reduce(
+        (cum, event) => [...cum, [channel, event, cfg[channel][event]]], []
+      ), []
+    )
+
+  // channel, filter key, translation (payload-to-action fn)
+  const triplets = Object.keys(eventProps).reduce(
+    (cum, next) => cum.concat(getTriplets(
+      next === 'on'
+        ? vdom.props['on'] :
+      /^on-/.test(next)
+        ? { [next.replace(/^on-/, '')]: vdom.props[next] } :
+      { state: { [next.replace(/^on/, '').toLowerCase()]: vdom.props[next] }}
+    )),
+    []
+  )
+
+  if (triplets.length > 0) {
+    const cmp = vdom.type
+
+    vdom.props = omit(Object.keys(eventProps))(vdom.props)
+    vdom.type = sources => {
+      const sinks = resolveShorthandComponent(cmp)(sources)
+
+      sinks.state = mergeFn(compact(
+        triplets.map(([channel, event, payloadToAction]) =>
+          sinks[channel] && sinks[channel]
+            .filter(([cmpEvent]) => cmpEvent === event)
+            .map(([, payload]) => payloadToAction(payload))
+        )
+      ))
+
+      return sinks
+    }
+  }
+}
+
+export function resolveEventProps (vdom, { mergeFn }) {
+  if (isDomElement(vdom)) {
+    return resolveDomEventProps(vdom, { mergeFn })
+  } else if (isComponentNode(vdom)) {
+    return resolveComponentEventProps(vdom, { mergeFn })
+  }
 }
 
 export function resolvePlaceholder (val) {
