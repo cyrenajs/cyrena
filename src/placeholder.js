@@ -1,10 +1,9 @@
+import { identity } from './fp.js'
+
 export const PLACEHOLDER = Symbol('powercycle.placeholder')
 export const RESOLVE_PATH = Symbol('powercycle.placeholder_path')
 export const RESOLVE = Symbol('powercycle.placeholder_resolve')
 export const BASE_STREAM = Symbol('powercycle.placeholder_base_stream')
-
-import xs from 'xstream'
-import { identity } from './fp.js'
 
 export const isPlaceholder = val =>
   val && val[PLACEHOLDER]
