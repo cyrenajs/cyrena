@@ -1,6 +1,6 @@
 {
   "name": "powercycle",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "description": "Mix the simplicity of React with the power of Cycle.js",
   "main": "src/powercycle.js",
   "scripts": {
@@ -34,5 +34,8 @@
     "@cycle/react-dom": "^2.3.0",
     "react": "^16.8.3",
     "xstream": "^11.10.0"
+  },
+  "devDependencies": {
+    "prettier": "^1.19.1"
   }
 }

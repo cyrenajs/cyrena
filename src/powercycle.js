@@ -213,5 +213,5 @@ export const component = powercycle
 // so the sources object is passed to every component child in the tree.
 export default Object.assign(
   Cmp => sources => powercycle(pragma(Cmp), null, sources),
-  { pragma, Fragment }
+  { pragma, Fragment, createElement: pragma }
 )
