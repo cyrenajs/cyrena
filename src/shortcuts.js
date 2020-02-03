@@ -1,15 +1,11 @@
 import {
-  clone, omit, get, set, pick, pickBy, forEach, castArray, mapValues, compact
+  clone, omit, get, set, pick, pickBy, forEach, castArray, compact
 } from './fp.js'
 
-import xs from 'xstream'
-
 import {
-  VDOM_ELEMENT_FLAG,
   STATE_MAPPER,
   typeSymbols,
   isElement,
-  isStream,
   isDomElement,
   isPrimitive,
   isComponentNode
@@ -36,10 +32,6 @@ import isolate from '@cycle/isolate'
 import {
   getConditionalCmp
 } from './util/logical.js'
-
-import {
-  $get
-} from './util.js'
 
 // Allow shortcut return value, like: return <div>...</div>
 // or with sinks: return [<div>...</div>, { state: ... }]

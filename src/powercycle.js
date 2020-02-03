@@ -1,10 +1,10 @@
 import {
-  clone, castArray, compact, omit, mapValues,
+  castArray, compact, omit, mapValues,
   zip, merge, uniqueId, get, set, without,
   clonePath
 } from './fp.js'
 
-import xs, { Stream } from 'xstream'
+import xs from 'xstream'
 import isolate from '@cycle/isolate'
 export { makeDOMDriver } from '@cycle/react-dom'
 
@@ -12,7 +12,6 @@ import {
   isComponentNode,
   isElement,
   isStream,
-  isVdomChildPath,
   isInlineComponent,
 } from './dynamictypes.js'
 
@@ -21,23 +20,13 @@ export { pragma, Fragment } from './reactpragma.js'
 
 import {
   resolveShorthandOutput,
-  resolvePathScope,
   injectAutoSel,
   resolveScopeOrIfProp,
   resolveEventProps,
   resolvePlaceholder,
   resolveStateMapper,
-  createStateMapper,
   isStateMapper
 } from './shortcuts.js'
-
-import {
-  withLocalState
-} from './util/withLocalState.js'
-
-import {
-  RESOLVE, PLACEHOLDER
-} from './placeholder.js'
 
 export const CONFIG = {
   vdomProp: 'react',

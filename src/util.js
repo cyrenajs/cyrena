@@ -1,13 +1,12 @@
 import { pragma, Fragment } from './reactpragma.js'
-import { powercycle, CONFIG } from './powercycle.js'
+import { powercycle } from './powercycle.js'
 
 import {
   castArray,
   get as _get,
   pick,
   uniqueId,
-  mergeDeep,
-  isObject
+  mergeDeep
 } from './fp.js'
 
 import {

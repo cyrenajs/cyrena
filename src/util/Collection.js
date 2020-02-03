@@ -1,8 +1,7 @@
-import { pragma, Fragment } from '../reactpragma.js'
+import { pragma } from '../reactpragma.js'
 import { makeCollection, Instances } from '@cycle/state'
-import { powercycle, CONFIG } from '../powercycle.js'
+import { CONFIG } from '../powercycle.js'
 import isolate from '@cycle/isolate'
-import xs from 'xstream'
 
 import {
   getPathLens,

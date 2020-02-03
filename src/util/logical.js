@@ -1,12 +1,10 @@
 import { pragma } from '../reactpragma.js'
-import { powercycle } from '../powercycle.js'
 
 import {
   $map, getDynamicCmp, wrapInComponent
 } from '../util.js'
 
 import {
-  isStateMapper,
   resolveStateMapper
 } from '../shortcuts.js'
 
