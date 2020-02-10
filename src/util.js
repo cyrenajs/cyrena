@@ -1,29 +1,15 @@
-import { pragma, Fragment } from './reactpragma.js'
-import { powercycle } from './powercycle.js'
+import { pragma } from './reactpragma.js'
 
 import {
-  castArray,
   get as _get,
   pick,
   uniqueId,
   mergeDeep
 } from './fp.js'
 
-import {
-  Collection,
-  collectSinksBasedOnSource
-} from './util/Collection.js'
-
-import {
-  Instances,
-} from '@cycle/state'
-
-import {
-  resolvePlaceholder,
-  isStateMapper,
-  createStateMapper,
-  resolveStateMapper,
-} from './shortcuts.js'
+import isStateMapper from './isStateMapper.js'
+import createStateMapper from './createStateMapper.js'
+import resolvePlaceholder from './resolvePlaceholder.js'
 
 import {
   isStream
@@ -36,43 +22,8 @@ import {
 
 import xs from 'xstream'
 
-// This is just a dummy component to serve as a lens or collection item
-// container for a sub-vdom.
-export function Scope (sources) {
-  return wrapInComponent(sources.props.children)(sources)
-}
-
 export function Debug (sources) {
   return pragma('pre', null, $map(JSON.stringify))
-}
-
-export function getDynamicCmp (stream, getCmp) {
-  return sources => {
-    const _stream = resolveStateMapper(stream, sources)
-
-    const instances$ = _stream.fold(function (acc, next) {
-      const key = next && next.key || uniqueId()
-      const cmp = getCmp(next)
-      const sinks = cmp(sources)
-
-      acc.dict.clear()
-      acc.dict.set(key, sinks)
-
-      return { dict: acc.dict, arr: [{ ...sinks, _key: key }] }
-    }, { dict: new Map(), arr: [] })
-
-    return collectSinksBasedOnSource(sources)(new Instances(instances$))
-  }
-}
-
-export function wrapInComponent(...values) {
-  return sources => {
-    return powercycle(
-      pragma(Fragment, null, ...castArray(values)),
-      null,
-      sources
-    )
-  }
 }
 
 export const pickLens = (...keys) => ({
@@ -148,7 +99,3 @@ export const $get = (key, src) =>
     streamVal => key ? _get(key.split('.'))(streamVal) : streamVal,
     src
   )
-
-export const $for = (base, vdom) => {
-  return pragma(Collection, { for: base }, vdom)
-}

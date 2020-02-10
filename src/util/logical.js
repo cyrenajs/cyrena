@@ -1,12 +1,10 @@
 import { pragma } from '../reactpragma.js'
 
-import {
-  $map, getDynamicCmp, wrapInComponent
-} from '../util.js'
+import { $map } from '../util.js'
 
-import {
-  resolveStateMapper
-} from '../shortcuts.js'
+import { wrapInComponent } from '../powercycle.js'
+
+import resolveStateMapper from '../resolveStateMapper.js'
 
 import {
   $
@@ -16,26 +14,9 @@ import {
   isStream
 } from '../dynamictypes.js'
 
-import xs, { MemoryStream } from 'xstream'
+import xs from 'xstream'
 
-export function getConditionalCmp (cond, getCmp) {
-  const cond$ = isStream(cond)
-    ? cond
-    // xs.of() is insufficient, because it must be a memory stream
-    : xs.create().startWith(cond)
-
-  if (!(cond$ instanceof MemoryStream)) {
-    console.warn('Conditional stream should be a MemoryStream')
-  }
-
-  return getDynamicCmp (
-    cond$.fold(
-      (acc, next) => ({ cond: next, key: String(Boolean(next)) }),
-      { cond: false, key: 'false' }
-    ),
-    next => getCmp(next.cond)
-  )
-}
+import getConditionalCmp from '../getDynamicCmp.js'
 
 export function If (sources) {
   const cond$ = resolveStateMapper(sources.props.cond, sources)

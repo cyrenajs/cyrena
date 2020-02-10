@@ -2,7 +2,7 @@ import { jsxFactory } from '@cycle/react-dom'
 export { Fragment } from 'react'
 import { clone } from './fp.js'
 import { createElement } from './dynamictypes.js'
-import { resolvePlaceholder } from './shortcuts.js'
+import resolvePlaceholder from './resolvePlaceholder.js'
 
 // De-freeze the vdom element which React freezes. It allows us to fill-up
 // placeholders, though it's not needed for that purpose atm, because

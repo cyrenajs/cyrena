@@ -20,6 +20,8 @@ import { isPlaceholder } from './placeholder.js'
 export const VDOM_ELEMENT_FLAG = Symbol('powercycle.element')
 export const STATE_MAPPER = Symbol('powercycle.state_mapper')
 
+export const SEL_ROOT = Symbol('ROOT')
+
 // This is only needed to allow such shortcuts with shortcuts/powerUpSources:
 // sources[inc].click
 // The value of this seems borderline. We can later remove this support and

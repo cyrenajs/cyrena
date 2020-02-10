@@ -6,9 +6,7 @@ import {
   StateSource
 } from '@cycle/state'
 
-import {
-  resolveShorthandOutput
-} from '../shortcuts.js'
+import resolveShorthandOutput from '../resolveShorthandOutput.js'
 
 import { omit, pick } from '../fp.js'
 

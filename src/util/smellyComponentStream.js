@@ -1,10 +1,6 @@
-import {
-  resolveShorthandComponent
-} from '../shortcuts.js'
+import resolveShorthandComponent from '../resolveShorthandComponent.js'
 
-import {
-  getDynamicCmp
-} from '../util.js'
+import getDynamicCmp from '../getDynamicCmp.js'
 
 /**
  * Allows to use a stream of components as one component. This a monad bind

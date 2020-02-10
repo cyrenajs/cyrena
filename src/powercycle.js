@@ -12,21 +12,21 @@ import {
   isComponentNode,
   isElement,
   isStream,
-  isInlineComponent,
+  isInlineComponent
 } from './dynamictypes.js'
 
 import { pragma, Fragment } from './reactpragma.js'
 export { pragma, Fragment } from './reactpragma.js'
 
-import {
-  resolveShorthandOutput,
-  injectAutoSel,
-  resolveScopeOrIfProp,
-  resolveEventProps,
-  resolvePlaceholder,
-  resolveStateMapper,
-  isStateMapper
-} from './shortcuts.js'
+import injectAutoSel from './injectAutoSel.js'
+import resolvePlaceholder from './resolvePlaceholder.js'
+import isStateMapper from './isStateMapper.js'
+import resolveStateMapper from './resolveStateMapper.js'
+
+import resolveScopeOrIfProp from './resolveScopeOrIfProp.js'
+import resolveEventProps from './resolveEventProps.js'
+
+import resolveShorthandOutput from './resolveShorthandOutput.js'
 
 export const CONFIG = {
   vdomProp: 'react',
@@ -196,6 +196,22 @@ const makePowercycle = config =>
 
 export const powercycle = makePowercycle(CONFIG)
 export const component = powercycle
+
+export function wrapInComponent(...values) {
+  return sources => {
+    return powercycle(
+      pragma(Fragment, null, ...castArray(values)),
+      null,
+      sources
+    )
+  }
+}
+
+// This is just a dummy component to serve as a lens or collection item
+// container for a sub-vdom.
+export function Scope (sources) {
+  return wrapInComponent(sources.props.children)(sources)
+}
 
 // Wrapper for any cycle component for the convenience of shorthand
 // return values. An initial powercycle() call makes the component managed,

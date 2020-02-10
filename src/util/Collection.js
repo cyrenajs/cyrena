@@ -3,17 +3,18 @@ import { makeCollection, Instances } from '@cycle/state'
 import { CONFIG } from '../powercycle.js'
 import isolate from '@cycle/isolate'
 
-import {
-  getPathLens,
-  resolveStateMapper,
-  resolveShorthandOutput
-} from '../shortcuts.js'
+import getPathLens from '../getPathLens.js'
 
-import { wrapInComponent } from '../util.js'
+import resolveStateMapper from '../resolveStateMapper.js'
+
+import { wrapInComponent } from '../powercycle.js'
+import resolveShorthandOutput from '../resolveShorthandOutput.js'
 
 import {
-  omit, mapValues, castArray, uniqueId, get
+  castArray, uniqueId, get
 } from '../fp.js'
+
+import collectSinksBasedOnSource from '../collectSinksBasedOnSource.js'
 
 // Returns with a collection component based on the given stream. Options is
 // either a function returning a ShorthandComponent or a config object.
@@ -86,30 +87,6 @@ export const COLLECTION_DELETE =
 export const CollectionItem = sources =>
   wrapInComponent(sources.props.children)(sources)
 
-// Collect all the channels (keys) from the sources as a base for pickMerge
-export const collectSinksBasedOnSource = sources => instances => {
-  // Make sure that the sources object is de-proxyfied
-  // Update: seems like it's not needed
-  // return [clone(sources)]
-  return [sources]
-    // 'props' is a special source prop, and not a channel
-    .map(omit(['props']))
-    // pickMerge the event channels based on the sources keys
-    .map(mapValues((src, channel) => instances.pickMerge(channel)))
-    // ...and pickCombine the vdom channel
-    .map(sinks => ({
-      ...sinks,
-      [CONFIG.vdomProp]: instances
-        .pickCombine(CONFIG.vdomProp)
-        .map(itemVdoms =>
-          itemVdoms.map((vdom, idx) => ({
-            ...vdom,
-            key: String(idx)
-          }))
-        )
-    }))
-  [0]
-}
 
 const identityLens = {
   get: state => state,
