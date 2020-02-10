@@ -1,9 +1,10 @@
-import resolveShorthandOutput from './resolveShorthandOutput.js'
+import { resolveShorthandOutput } from './powercycle.js'
 
-export default function resolveShorthandComponent (shorthandComponent) {
-  return resolveShorthandOutput(
+export default function resolveShorthandComponent (shorthandComponent, powercycle) {
+  const cmp =
     typeof shorthandComponent === 'function'
       ? shorthandComponent
       : () => shorthandComponent
-  )
+
+  return resolveShorthandOutput(cmp, powercycle)
 }

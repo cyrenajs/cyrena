@@ -1,14 +1,13 @@
 import { pragma } from '../reactpragma.js'
 import { makeCollection, Instances } from '@cycle/state'
-import { CONFIG } from '../powercycle.js'
+import CONFIG from '../CONFIG.js'
 import isolate from '@cycle/isolate'
 
 import getPathLens from '../getPathLens.js'
 
 import resolveStateMapper from '../resolveStateMapper.js'
 
-import { wrapInComponent } from '../powercycle.js'
-import resolveShorthandOutput from '../resolveShorthandOutput.js'
+import { wrapInComponent, resolveShorthandOutput } from '../powercycle.js'
 
 import {
   castArray, uniqueId, get

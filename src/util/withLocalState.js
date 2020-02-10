@@ -6,7 +6,7 @@ import {
   StateSource
 } from '@cycle/state'
 
-import resolveShorthandOutput from '../resolveShorthandOutput.js'
+import { resolveShorthandOutput } from '../powercycle.js'
 
 import { omit, pick } from '../fp.js'
 

@@ -1,4 +1,4 @@
-import { CONFIG } from './powercycle.js'
+import CONFIG from './CONFIG.js'
 import { omit, mapValues } from './fp.js'
 
 // Collect all the channels (keys) from the sources as a base for pickMerge

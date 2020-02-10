@@ -20,6 +20,8 @@ import resolveShorthandComponent from './resolveShorthandComponent.js'
 
 import getPathLens from './getPathLens.js'
 
+import CONFIG from './CONFIG.js'
+
 // Support dot-separated deep scopes - not sure how much of a real world usecase
 // We choose a careful strategy here, ie. if there's no dot, we stay with the
 // string version
@@ -57,7 +59,7 @@ const EVENT_PROPS = (
 //     <button onClick={{ state: ev$ => ev$.mapTo(prev => prev + 1) }}>Inc</button>
 // 2. A callback which maps from event to state:
 //     <button onClick={ev => prev => prev + 1}>Inc</button>
-function resolveDomEventProps (vdom, { mergeFn }) {
+function resolveDomEventProps (vdom) {
   const eventProps = pick(EVENT_PROPS)(vdom.props)
 
   if (Object.keys(eventProps).length === 0) {
@@ -85,7 +87,7 @@ function resolveDomEventProps (vdom, { mergeFn }) {
 
         sinks[channel] = !sinks[channel]
           ? stream
-          : mergeFn(sinks[channel], stream)
+          : CONFIG.mergeFn(sinks[channel], stream)
       })
     })
 
@@ -111,7 +113,7 @@ function resolveDomEventProps (vdom, { mergeFn }) {
   return true
 }
 
-function resolveComponentEventProps (vdom, { mergeFn }) {
+function resolveComponentEventProps (vdom, powercycle) {
   const eventProps =
     pickBy((cfg, prop) => /^on(?:$|-|[A-Z])/.test(prop))(vdom.props)
 
@@ -139,9 +141,9 @@ function resolveComponentEventProps (vdom, { mergeFn }) {
 
     vdom.props = omit(Object.keys(eventProps))(vdom.props)
     vdom.type = sources => {
-      const sinks = resolveShorthandComponent(cmp)(sources)
+      const sinks = resolveShorthandComponent(cmp, powercycle)(sources)
 
-      sinks.state = mergeFn(compact(
+      sinks.state = CONFIG.mergeFn(compact(
         triplets.map(([channel, event, payloadToAction]) =>
           sinks[channel] && sinks[channel]
             .filter(([cmpEvent]) => cmpEvent === event)
@@ -154,10 +156,10 @@ function resolveComponentEventProps (vdom, { mergeFn }) {
   }
 }
 
-export default function resolveEventProps (vdom, { mergeFn }) {
+export default function resolveEventProps (vdom, powercycle) {
   if (isDomElement(vdom)) {
-    return resolveDomEventProps(vdom, { mergeFn })
+    return resolveDomEventProps(vdom)
   } else if (isComponentNode(vdom)) {
-    return resolveComponentEventProps(vdom, { mergeFn })
+    return resolveComponentEventProps(vdom, powercycle)
   }
 }

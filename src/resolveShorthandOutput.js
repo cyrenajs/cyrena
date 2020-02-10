@@ -10,11 +10,8 @@ import {
 } from './dynamictypes.js'
 
 import { pragma, Fragment } from './reactpragma.js'
-export { pragma, Fragment } from './reactpragma.js'
 
 import powerUpSources from './powerUpSources.js'
-
-import { powercycle } from './powercycle.js'
 
 // Allow shortcut return value, like: return <div>...</div>
 // or with sinks: return [<div>...</div>, { state: ... }]
@@ -25,7 +22,7 @@ import { powercycle } from './powercycle.js'
 // sources object. The shorthand return form requires at least one initial
 // powercycle() call at the top of the hierarchy, which can be achieved with
 // the withPower() utility as well
-export default function resolveShorthandOutput(cmp) {
+export default function resolveShorthandOutput(cmp, powercycle) {
   return sources => {
     const output = castArray(cmp(powerUpSources(sources)))
 

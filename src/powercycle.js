@@ -4,7 +4,6 @@ import {
   clonePath
 } from './fp.js'
 
-import xs from 'xstream'
 import isolate from '@cycle/isolate'
 export { makeDOMDriver } from '@cycle/react-dom'
 
@@ -26,12 +25,12 @@ import resolveStateMapper from './resolveStateMapper.js'
 import resolveScopeOrIfProp from './resolveScopeOrIfProp.js'
 import resolveEventProps from './resolveEventProps.js'
 
-import resolveShorthandOutput from './resolveShorthandOutput.js'
+import CONFIG from './CONFIG.js'
 
-export const CONFIG = {
-  vdomProp: 'react',
-  combineFn: streams => xs.combine(...streams),
-  mergeFn: streams => xs.merge(...streams)
+import _resolveShorthandOutput from './resolveShorthandOutput.js'
+
+export function resolveShorthandOutput (cmd) {
+  return _resolveShorthandOutput(cmd, powercycle)
 }
 
 // Traverses the tree and returns with a flat list of stream records
@@ -67,11 +66,11 @@ const makeTraverseAction = config => (acc, __val, path, root) => {
   const _isStateMapper = isStateMapper(val)
 
   // These mutate the vdom (val)
-  if (resolveScopeOrIfProp(val, config) === true) {
+  if (resolveScopeOrIfProp(val, powercycle) === true) {
     return [acc, false]
   }
 
-  if (resolveEventProps(val, config) === true) {
+  if (resolveEventProps(val, powercycle) === true) {
     return [acc, false]
   }
 

@@ -12,7 +12,6 @@ import {
 } from './reactpragma.js'
 
 import resolveShorthandOutput from './resolveShorthandOutput.js'
-import { powercycle } from './powercycle.js'
 
 import resolveStateMapper from './resolveStateMapper.js'
 
@@ -24,7 +23,7 @@ import resolvePathScope from './resolvePathScope.js'
 
 import wrapVdom from './wrapVdom.js'
 
-function resolveScopeProp (vdom) {
+function resolveScopeProp (vdom, powercycle) {
   if (!isElement(vdom) || !vdom.props.scope) {
     return
   }
@@ -34,7 +33,8 @@ function resolveScopeProp (vdom) {
     (type, props, children) =>
       isolate(
         resolveShorthandOutput(
-          sources => pragma(type, props, ...castArray(children))
+          sources => pragma(type, props, ...castArray(children)),
+          powercycle
         ),
         resolvePathScope(vdom.props.scope)
       ),
@@ -45,7 +45,7 @@ function resolveScopeProp (vdom) {
   return true
 }
 
-function resolveIfProp (vdom) {
+function resolveIfProp (vdom, powercycle) {
   if (!isElement(vdom) || !({}).hasOwnProperty.call(vdom.props, 'if')) {
     return
   }
@@ -73,7 +73,7 @@ function resolveIfProp (vdom) {
   return true
 }
 
-export default function resolveScopeOrIfProp (vdom) {
+export default function resolveScopeOrIfProp (vdom, powercycle) {
   if (!isElement(vdom)) {
     return
   }
@@ -82,10 +82,10 @@ export default function resolveScopeOrIfProp (vdom) {
     .filter(prop => ['if', 'scope'].includes(prop))
 
     for (let key of relevantProps) {
-      if (key === 'if' && resolveIfProp(vdom) === true) {
+      if (key === 'if' && resolveIfProp(vdom, powercycle) === true) {
       return true
     }
-    if (key === 'scope' && resolveScopeProp(vdom) === true) {
+    if (key === 'scope' && resolveScopeProp(vdom, powercycle) === true) {
       return true
     }
   }
