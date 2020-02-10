@@ -1,4 +1,4 @@
-import resolveShorthandComponent from '../resolveShorthandComponent.js'
+import { resolveShorthandComponent } from '../powercycle.js'
 
 import getDynamicCmp from '../getDynamicCmp.js'
 

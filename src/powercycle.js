@@ -28,9 +28,13 @@ import resolveEventProps from './resolveEventProps.js'
 import CONFIG from './CONFIG.js'
 
 import _resolveShorthandOutput from './resolveShorthandOutput.js'
-
 export function resolveShorthandOutput (cmd) {
   return _resolveShorthandOutput(cmd, powercycle)
+}
+
+import _resolveShorthandComponent from './resolveShorthandComponent.js'
+export function resolveShorthandComponent (cmd) {
+  return _resolveShorthandComponent(cmd, powercycle)
 }
 
 // Traverses the tree and returns with a flat list of stream records
