@@ -1,10 +1,11 @@
 {
   "name": "powercycle",
   "version": "0.20.1",
-  "description": "Mix the simplicity of React with the power of Cycle.js",
+  "description": "Composable Cycle.js with seamless React interop",
   "main": "src/powercycle.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "madge": "npx madge --circular --basedir $(pwd) ./src/**/*.js || exit 0",
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -25,17 +26,17 @@
     "url": "https://github.com/sarimarton/powercycle/issues"
   },
   "homepage": "https://sarimarton.github.io/powercycle/",
-  "dependencies": {
-    "@cycle/isolate": "^5.0.0",
-    "@cycle/state": "^1.2.0"
-  },
+  "dependencies": {},
   "peerDependencies": {
+    "@cycle/isolate": "^5.0.0",
+    "@cycle/state": "^1.2.0",
     "@cycle/react": "^2.3.0",
     "@cycle/react-dom": "^2.3.0",
     "react": "^16.8.3",
     "xstream": "^11.10.0"
   },
   "devDependencies": {
-    "prettier": "^1.19.1"
+    "prettier": "^1.19.1",
+    "madge": "^3.7.0"
   }
 }

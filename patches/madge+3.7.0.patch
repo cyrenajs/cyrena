@@ -1,0 +1,13 @@
+diff --git a/node_modules/madge/lib/tree.js b/node_modules/madge/lib/tree.js
+index d987da7..10522a3 100644
+--- a/node_modules/madge/lib/tree.js
++++ b/node_modules/madge/lib/tree.js
+@@ -222,7 +222,7 @@ class Tree {
+ 	 * @return {Boolean}
+ 	 */
+ 	isNpmPath(path) {
+-		return path.indexOf('node_modules') >= 0;
++		return path.indexOf('node_modules') >= (this.config.baseDir ? this.config.baseDir.length : 0);
+ 	}
+ 
+ 	/**
