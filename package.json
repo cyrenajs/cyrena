@@ -1,6 +1,6 @@
 {
   "name": "powercycle",
-  "version": "0.20.2",
+  "version": "0.20.3",
   "description": "Composable Cycle.js with seamless React interop",
   "main": "src/powercycle.js",
   "scripts": {
