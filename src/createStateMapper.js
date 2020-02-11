@@ -1,6 +1,4 @@
-import {
-  STATE_MAPPER
-} from './dynamictypes.js'
+import { STATE_MAPPER } from './dynamictypes.js'
 
 export default function createStateMapper (fn) {
   return Object.assign(fn, {

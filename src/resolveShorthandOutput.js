@@ -1,16 +1,6 @@
-import {
-  castArray
-} from './fp.js'
-
-export { makeDOMDriver } from '@cycle/react-dom'
-
-import {
-  isElement,
-  isPrimitive
-} from './dynamictypes.js'
-
+import { castArray } from './fp.js'
+import { isElement, isPrimitive } from './dynamictypes.js'
 import { pragma, Fragment } from './reactpragma.js'
-
 import powerUpSources from './powerUpSources.js'
 
 // Allow shortcut return value, like: return <div>...</div>

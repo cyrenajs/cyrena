@@ -1,25 +1,9 @@
-import {
-  omit, pick, pickBy, forEach, compact
-} from './fp.js'
-
-import {
-  isDomElement,
-  isComponentNode
-} from './dynamictypes.js'
-
-import {
-  isPlaceholder,
-  RESOLVE
-} from './placeholder.js'
-
-import {
-  pragma
-} from './reactpragma.js'
-
+import { omit, pick, pickBy, forEach, compact } from './fp.js'
+import { isDomElement, isComponentNode } from './dynamictypes.js'
+import { isPlaceholder, RESOLVE } from './placeholder.js'
+import { pragma } from './reactpragma.js'
 import resolveShorthandComponent from './resolveShorthandComponent.js'
-
 import getPathLens from './getPathLens.js'
-
 import CONFIG from './CONFIG.js'
 
 // Support dot-separated deep scopes - not sure how much of a real world usecase

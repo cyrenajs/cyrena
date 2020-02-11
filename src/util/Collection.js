@@ -1,18 +1,11 @@
-import { pragma } from '../reactpragma.js'
-import { makeCollection, Instances } from '@cycle/state'
-import CONFIG from '../CONFIG.js'
 import isolate from '@cycle/isolate'
-
+import { makeCollection, Instances } from '@cycle/state'
+import { pragma } from '../reactpragma.js'
+import CONFIG from '../CONFIG.js'
 import getPathLens from '../getPathLens.js'
-
 import resolveStateMapper from '../resolveStateMapper.js'
-
 import { wrapInComponent, resolveShorthandOutput } from '../powercycle.js'
-
-import {
-  castArray, uniqueId, get
-} from '../fp.js'
-
+import { castArray, uniqueId, get } from '../fp.js'
 import collectSinksBasedOnSource from '../collectSinksBasedOnSource.js'
 
 // Returns with a collection component based on the given stream. Options is

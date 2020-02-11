@@ -1,13 +1,6 @@
+import { Instances } from '@cycle/state'
 import collectSinksBasedOnSource from './collectSinksBasedOnSource.js'
-
-import {
-  Instances,
-} from '@cycle/state'
-
-import {
-  uniqueId
-} from './fp.js'
-
+import { uniqueId } from './fp.js'
 import resolveStateMapper from './resolvePlaceholder.js'
 
 export default function getDynamicCmp (stream, getCmp) {

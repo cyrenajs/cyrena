@@ -1,26 +1,11 @@
+import xs from 'xstream'
 import { pragma } from './reactpragma.js'
-
-import {
-  get as _get,
-  pick,
-  uniqueId,
-  mergeDeep
-} from './fp.js'
-
+import { get as _get, pick, uniqueId, mergeDeep } from './fp.js'
 import isStateMapper from './isStateMapper.js'
 import createStateMapper from './createStateMapper.js'
 import resolvePlaceholder from './resolvePlaceholder.js'
-
-import {
-  isStream
-} from './dynamictypes.js'
-
-import {
-  PLACEHOLDER,
-  RESOLVE
-} from './placeholder.js'
-
-import xs from 'xstream'
+import { isStream } from './dynamictypes.js'
+import { PLACEHOLDER, RESOLVE } from './placeholder.js'
 
 export function Debug (sources) {
   return pragma('pre', null, $map(JSON.stringify))

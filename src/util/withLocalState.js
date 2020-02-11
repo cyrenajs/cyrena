@@ -1,13 +1,7 @@
+import { withState, StateSource } from '@cycle/state'
 import xs from 'xstream'
 import sampleCombine from 'xstream/extra/sampleCombine'
-
-import {
-  withState,
-  StateSource
-} from '@cycle/state'
-
 import { resolveShorthandOutput } from '../powercycle.js'
-
 import { omit, pick } from '../fp.js'
 
 /**

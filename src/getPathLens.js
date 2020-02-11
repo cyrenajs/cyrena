@@ -1,6 +1,4 @@
-import {
-  clone, get, set
-} from './fp.js'
+import { clone, get, set } from './fp.js'
 
 export default function getPathLens (path) {
   const pathArr = path.split('.')

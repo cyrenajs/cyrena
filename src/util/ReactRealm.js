@@ -1,9 +1,7 @@
+import xs from 'xstream'
 import { useState, useEffect } from 'react'
 import { pragma, Fragment } from '../reactpragma.js'
-import xs from 'xstream'
-import {
-  clone, castArray, cloneDeepWith
-} from '../fp.js'
+import { clone, castArray, cloneDeepWith } from '../fp.js'
 
 const isReactComponent = val =>
   val && val.$$typeof === Symbol.for('react.element') &&

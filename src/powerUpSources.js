@@ -1,11 +1,5 @@
-import {
-  typeSymbols,
-  SEL_ROOT
-} from './dynamictypes.js'
-
-import {
-  get
-} from './fp.js'
+import { typeSymbols, SEL_ROOT } from './dynamictypes.js'
+import { get } from './fp.js'
 
 function eventsProxy (target, prop) {
   const selector = typeof prop === 'symbol' && Symbol.keyFor(prop) || prop

@@ -1,11 +1,11 @@
+import isolate from '@cycle/isolate'
+export { makeDOMDriver } from '@cycle/react-dom'
+
 import {
   castArray, compact, omit, mapValues,
   zip, merge, uniqueId, get, set, without,
   clonePath
 } from './fp.js'
-
-import isolate from '@cycle/isolate'
-export { makeDOMDriver } from '@cycle/react-dom'
 
 import {
   isComponentNode,

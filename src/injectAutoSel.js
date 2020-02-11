@@ -1,14 +1,6 @@
-import {
-  omit
-} from './fp.js'
-
-import {
-  SEL_ROOT
-} from './dynamictypes.js'
-
-import {
-  pragma
-} from './reactpragma.js'
+import { omit } from './fp.js'
+import { SEL_ROOT } from './dynamictypes.js'
+import { pragma } from './reactpragma.js'
 
 // Injects sel={SEL_ROOT} automatically on the root element of the VDOM
 // It's used internally with powerUpSources

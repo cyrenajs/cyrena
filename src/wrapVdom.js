@@ -1,10 +1,5 @@
-import {
-  omit
-} from './fp.js'
-
-import {
-  Fragment
-} from './reactpragma.js'
+import { omit } from './fp.js'
+import { Fragment } from './reactpragma.js'
 
 export default function wrapVdom (vdom, getInlineCmp, propsToRemove, outerProps) {
   const type = vdom.type

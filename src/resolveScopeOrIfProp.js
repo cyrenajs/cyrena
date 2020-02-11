@@ -1,26 +1,11 @@
-import {
-  castArray
-} from './fp.js'
-
-import {
-  isElement
-} from './dynamictypes.js'
-
-import {
-  pragma,
-  Fragment
-} from './reactpragma.js'
-
-import resolveShorthandOutput from './resolveShorthandOutput.js'
-
-import resolveStateMapper from './resolveStateMapper.js'
-
 import isolate from '@cycle/isolate'
-
+import { castArray } from './fp.js'
+import { isElement } from './dynamictypes.js'
+import { pragma, Fragment } from './reactpragma.js'
+import resolveShorthandOutput from './resolveShorthandOutput.js'
+import resolveStateMapper from './resolveStateMapper.js'
 import getConditionalCmp from './getConditionalCmp.js'
-
 import resolvePathScope from './resolvePathScope.js'
-
 import wrapVdom from './wrapVdom.js'
 
 function resolveScopeProp (vdom, powercycle) {

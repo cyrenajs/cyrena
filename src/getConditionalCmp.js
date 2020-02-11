@@ -1,8 +1,6 @@
-import getDynamicCmp from './getDynamicCmp.js'
-
-import { isStream } from './dynamictypes.js'
-
 import xs, { MemoryStream } from 'xstream'
+import getDynamicCmp from './getDynamicCmp.js'
+import { isStream } from './dynamictypes.js'
 
 export default function getConditionalCmp (cond, getCmp) {
   const cond$ = isStream(cond)

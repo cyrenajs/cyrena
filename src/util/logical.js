@@ -1,21 +1,10 @@
-import { pragma } from '../reactpragma.js'
-
-import { $map } from '../util.js'
-
-import { wrapInComponent } from '../powercycle.js'
-
-import resolveStateMapper from '../resolveStateMapper.js'
-
-import {
-  $
-} from '../placeholder.js'
-
-import {
-  isStream
-} from '../dynamictypes.js'
-
 import xs from 'xstream'
-
+import { pragma } from '../reactpragma.js'
+import { $map } from '../util.js'
+import { wrapInComponent } from '../powercycle.js'
+import resolveStateMapper from '../resolveStateMapper.js'
+import { $ } from '../placeholder.js'
+import { isStream } from '../dynamictypes.js'
 import getConditionalCmp from '../getDynamicCmp.js'
 
 export function If (sources) {

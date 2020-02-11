@@ -1,7 +1,7 @@
 import { withState } from '@cycle/state'
-import withPower from 'powercycle'
 import xs from 'xstream'
 import sampleCombine from 'xstream/extra/sampleCombine'
+import withPower from 'powercycle'
 
 export const makeAction = name => payload => [name, payload]
 
