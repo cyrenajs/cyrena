@@ -17,9 +17,8 @@ function resolveScopeProp (vdom, powercycle) {
     vdom,
     (type, props, children) =>
       isolate(
-        resolveShorthandOutput(
-          sources => pragma(type, props, ...castArray(children)),
-          powercycle
+        resolveShorthandOutput(powercycle)(
+          sources => pragma(type, props, ...castArray(children))
         ),
         resolvePathScope(vdom.props.scope)
       ),

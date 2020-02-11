@@ -6,7 +6,7 @@ export * from '../src/util/logical.js'
 export * from '../src/util/Collection.js'
 export * from '../src/util/withLocalState.js'
 export * from '../src/util/withTransactionalState.js'
+export * from '../src/util/withTransactionalState.js'
+export * from '../src/util/Scope.js'
 
 export { default as $for } from '../src/$for.js'
-
-export { Scope } from '../src/powercycle.js'

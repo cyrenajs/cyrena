@@ -29,12 +29,17 @@ import CONFIG from './CONFIG.js'
 
 import _resolveShorthandOutput from './resolveShorthandOutput.js'
 export function resolveShorthandOutput (cmd) {
-  return _resolveShorthandOutput(cmd, powercycle)
+  return _resolveShorthandOutput(powercycle)(cmd)
 }
 
 import _resolveShorthandComponent from './resolveShorthandComponent.js'
 export function resolveShorthandComponent (cmd) {
-  return _resolveShorthandComponent(cmd, powercycle)
+  return _resolveShorthandComponent(powercycle)(cmd)
+}
+
+import _wrapInComponent from './wrapInComponent.js'
+export function wrapInComponent (...values) {
+  return _wrapInComponent(powercycle)(...values)
 }
 
 // Traverses the tree and returns with a flat list of stream records
@@ -199,22 +204,6 @@ const makePowercycle = config =>
 
 export const powercycle = makePowercycle(CONFIG)
 export const component = powercycle
-
-export function wrapInComponent(...values) {
-  return sources => {
-    return powercycle(
-      pragma(Fragment, null, ...castArray(values)),
-      null,
-      sources
-    )
-  }
-}
-
-// This is just a dummy component to serve as a lens or collection item
-// container for a sub-vdom.
-export function Scope (sources) {
-  return wrapInComponent(sources.props.children)(sources)
-}
 
 // Wrapper for any cycle component for the convenience of shorthand
 // return values. An initial powercycle() call makes the component managed,

@@ -125,7 +125,7 @@ function resolveComponentEventProps (vdom, powercycle) {
 
     vdom.props = omit(Object.keys(eventProps))(vdom.props)
     vdom.type = sources => {
-      const sinks = resolveShorthandComponent(cmp, powercycle)(sources)
+      const sinks = resolveShorthandComponent(powercycle)(cmp)(sources)
 
       sinks.state = CONFIG.mergeFn(compact(
         triplets.map(([channel, event, payloadToAction]) =>

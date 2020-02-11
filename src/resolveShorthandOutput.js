@@ -12,8 +12,8 @@ import powerUpSources from './powerUpSources.js'
 // sources object. The shorthand return form requires at least one initial
 // powercycle() call at the top of the hierarchy, which can be achieved with
 // the withPower() utility as well
-export default function resolveShorthandOutput(cmp, powercycle) {
-  return sources => {
+export default function resolveShorthandOutput(powercycle) {
+  return cmp => sources => {
     const output = castArray(cmp(powerUpSources(sources)))
 
     return isElement(output[0]) || isPrimitive(output[0])
@@ -29,4 +29,3 @@ export default function resolveShorthandOutput(cmp, powercycle) {
         output[0]
   }
 }
-
