@@ -5,7 +5,7 @@
   "main": "src/powercycle.js",
   "scripts": {
     "madge": "npx madge --circular --basedir $(pwd) ./src/**/*.js || exit 0",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package || exit 0"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,8 @@
     "xstream": "^11.10.0"
   },
   "devDependencies": {
-    "prettier": "^1.19.1",
-    "madge": "^3.7.0"
+    "madge": "^3.7.0",
+    "patch-package": "^6.1.2",
+    "prettier": "^1.19.1"
   }
 }
