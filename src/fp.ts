@@ -1,18 +1,22 @@
 export const identity = <T>(val: T): T => val
 
-export const isObject = val =>
+export const isObject = (val: unknown) =>
   val && typeof val === 'object'
 
 // It differs from the Lodash version
-export const defaultTo = (val, getDefaultValue) =>
+export const defaultTo = (val: unknown, getDefaultValue: () => unknown) =>
   val == null ? getDefaultValue() : val
 
-export const mapValues = fn => obj =>
+interface Mapper {
+  (val: unknown, key: string | number): any
+}
+
+export const mapValues = (fn: Mapper) => (obj: unknown) =>
   !isObject(obj)
     ? obj :
   Array.isArray(obj)
     ? obj.map(fn)
-    : Object.keys(obj).reduce(
+    : Object.keys(obj as object).reduce(
         (cum, key) => ({ ...cum, [key]: fn(obj[key], key) }),
         {}
       )

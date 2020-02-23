@@ -180,7 +180,7 @@ const makePowercycle = config =>
         })
 
     // Gather all event sinks (all but vdom) and merge them together by type
-    const allEventSinks =
+    const allEventSinks: Object =
       [placeholders]
         .map(xs => xs.filter(rec => rec.isCmp))
         .map(xs => xs.map(rec => rec.sinks))

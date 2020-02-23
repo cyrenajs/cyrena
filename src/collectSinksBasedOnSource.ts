@@ -3,6 +3,8 @@ import { omit, mapValues } from './fp.js'
 
 // Collect all the channels (keys) from the sources as a base for pickMerge
 export default function collectSinksBasedOnSource(sources) {
+  const vdomProp = CONFIG.vdomProp
+
   return instances => {
     // Make sure that the sources object is de-proxyfied
     // Update: seems like it's not needed
@@ -14,10 +16,10 @@ export default function collectSinksBasedOnSource(sources) {
         // pickMerge the event channels based on the sources keys
         .map(mapValues((...[, channel]) => instances.pickMerge(channel)))
         // ...and pickCombine the vdom channel
-        .map(sinks => ({
+        .map((sinks: Object) => ({
           ...sinks,
-          [CONFIG.vdomProp]: instances
-            .pickCombine(CONFIG.vdomProp)
+          [vdomProp]: instances
+            .pickCombine(vdomProp)
             .map(itemVdoms =>
               itemVdoms.map((vdom, idx) => ({
                 ...vdom,

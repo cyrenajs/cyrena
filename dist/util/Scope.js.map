@@ -1,1 +1,0 @@
-{"version":3,"file":"Scope.js","sourceRoot":"","sources":["../../src/util/Scope.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,kBAAkB,CAAA;AAElD,uEAAuE;AACvE,4BAA4B;AAC5B,MAAM,UAAU,KAAK,CAAE,OAAO;IAC5B,OAAO,eAAe,CAAC,OAAO,CAAC,KAAK,CAAC,QAAQ,CAAC,CAAC,OAAO,CAAC,CAAA;AACzD,CAAC"}

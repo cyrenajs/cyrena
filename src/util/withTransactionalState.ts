@@ -6,10 +6,13 @@ import withPower from '../powercycle'
 export const makeAction = name => payload => [name, payload]
 
 export function withTransactionalState (reducer, cmp) {
+  // @ts-ignore
   return withState(sources => {
     const sinks = withPower(cmp)(sources)
 
+    // @ts-ignore
     sinks.state =
+    // @ts-ignore
       (sinks.state || xs.never())
         .compose(
           sampleCombine(sources.state.stream.startWith(undefined))
