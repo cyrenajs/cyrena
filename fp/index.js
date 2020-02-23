@@ -1,2 +1,2 @@
 
-export * from '../src/fp.js'
+export * from '../dist/fp.js'

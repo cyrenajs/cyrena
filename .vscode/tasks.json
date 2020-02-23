@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Reveal TypeScript Errors",
+      "type": "shell",
+      "command": "npx tsc --noEmit",
+      "group": "test",
+      "presentation": {
+        "reveal": "never"
+      },
+      "problemMatcher": "$tsc"
+    }
+  ]
+}

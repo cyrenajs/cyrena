@@ -2,9 +2,12 @@
   "name": "powercycle",
   "version": "0.20.5",
   "description": "Composable Cycle.js with seamless React interop",
-  "main": "src/powercycle.js",
+  "main": "dist/powercycle.js",
   "scripts": {
-    "madge": "npx madge --circular --basedir $(pwd) ./src/**/*.js || exit 0",
+    "madge": "madge --circular --basedir $(pwd) ./dist/**/*.js || exit 0",
+    "build": "tsc",
+    "test": "echo :( | exit 0",
+    "prepublishOnly": "npm run build && npm test",
     "postinstall": "patch-package || exit 0"
   },
   "repository": {
@@ -36,8 +39,9 @@
     "xstream": "^11.10.0"
   },
   "devDependencies": {
-    "madge": "^3.7.0",
+    "madge": "3.7.0",
     "patch-package": "^6.1.2",
+    "typescript": "^3.8.2",
     "prettier": "^1.19.1"
   }
 }

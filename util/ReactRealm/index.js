@@ -1,2 +1,2 @@
 
-export * from '../../src/util/ReactRealm.js'
+export * from '../dist/util/ReactRealm'
