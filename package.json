@@ -1,5 +1,5 @@
 {
-  "name": "powercycle",
+  "name": "cyrena",
   "version": "0.20.5",
   "description": "Composable Cycle.js with seamless React interop",
   "main": "dist/powercycle.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sarimarton/powercycle.git"
+    "url": "git+https://github.com/sarimarton/cyrena.git"
   },
   "keywords": [
     "cyclejs",
