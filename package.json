@@ -26,9 +26,9 @@
   "author": "Marton Sari <sarimarton@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sarimarton/powercycle/issues"
+    "url": "https://github.com/sarimarton/cyrena/issues"
   },
-  "homepage": "https://sarimarton.github.io/powercycle/",
+  "homepage": "https://sarimarton.github.io/cyrena/",
   "dependencies": {},
   "peerDependencies": {
     "@cycle/isolate": "^5.0.0",
