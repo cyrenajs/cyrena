@@ -1,4 +1,4 @@
-Powercycle is a transpositional extension for the wonderful framework Cycle.js. Transposition means that instead of only having views defined in streams, we're allowed to have streams defined in views as well! It powers up Cycle.js to the next level so it almost looks like a new framework! It puts the view in the center, to make composition as easy and trivial as it is in React - while keeping all the benefits of a purely functional-reactive environment. Any regular Cycle.js and React component can be included seamlessly in a Powercycle app.
+Cyrena is a transpositional extension for the wonderful framework Cycle.js. Transposition means that instead of only having views defined in streams, we're allowed to have streams defined in views as well! It powers up Cycle.js to the next level so it almost looks like a new framework! It puts the view in the center, to make composition as easy and trivial as it is in React - while keeping all the benefits of a purely functional-reactive environment. Any regular Cycle.js and React component can be included seamlessly in a Cyrena app.
 
 ```jsx
 function Timer(sources) {
@@ -19,9 +19,9 @@ Basic examples:
 
 App examples:
 
-* [Tic Tac Toe](https://codesandbox.io/s/github/sarimarton/tic-tac-toe-powercycle)
-* [TMDb UI](https://codesandbox.io/s/github/sarimarton/tmdb-ui-powercycle)
-* [Testing dashboard](https://codesandbox.io/s/github/sarimarton/powercycle-showcase)
+* [Tic Tac Toe](https://codesandbox.io/s/github/sarimarton/tic-tac-toe-cyrena)
+* [TMDb UI](https://codesandbox.io/s/github/sarimarton/tmdb-ui-cyrena)
+* [Testing dashboard](https://codesandbox.io/s/github/sarimarton/cyrena-showcase)
 
 ## Motivation
 <details>
@@ -60,7 +60,7 @@ React and Cycle.js have separate advantages and compromises, and I wanted to bri
 
 ### Installation
 
-Install powercycle and its peer dependencies:
+Install Cyrena and its peer dependencies:
 
 `npm install powercycle @cycle/react react xstream`
 
