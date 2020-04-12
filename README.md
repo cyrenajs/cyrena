@@ -41,7 +41,7 @@ React and Cycle.js have separate advantages and compromises, and I wanted to bri
 
 <p>Cycle.js is a purely functional-reactive framework, and I won't detail how useful this fact is. It's also quite mature in its current state. Components are static, they're called once, and not by a runtime, but simply by the app author. The downside of it is that it's <em>not view-based</em>. Sure, we do have the view part, and it can even be JSX, but unfortunately this view part is not in the static scope. It's in the same iteratee-realm in which React is. But here it comes with a serious consequence: there's no easy composition! You can't throw in components in the VDOM tree. You have to do cumbersome boilerplate even for basic composition.</p>
 
-<p>This led me to explore the possibilities to make something as simple and composable as React, but as <em>right</em> in its programming model as Cycle.js. This pursue resulted in Powercycle.</p>
+<p>This led me to explore the possibilities to make something as simple and composable as React, but as <em>right</em> in its programming model as Cycle.js. This pursue resulted in Cyrena.</p>
 
 </details>
 
