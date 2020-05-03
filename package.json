@@ -1,6 +1,6 @@
 {
   "name": "cyrena",
-  "version": "0.20.5",
+  "version": "0.20.7",
   "description": "Composable Cycle.js with seamless React interop",
   "main": "dist/powercycle.js",
   "scripts": {
