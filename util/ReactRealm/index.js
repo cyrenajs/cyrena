@@ -1,2 +1,2 @@
 
-export * from '../dist/util/ReactRealm'
+export * from '../../dist/util/ReactRealm'

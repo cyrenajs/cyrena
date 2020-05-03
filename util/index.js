@@ -8,5 +8,6 @@ export * from '../dist/util/withLocalState'
 export * from '../dist/util/withTransactionalState'
 export * from '../dist/util/withTransactionalState'
 export * from '../dist/util/Scope'
+export * from '../dist/util/smellyComponentStream'
 
 export { default as $for } from '../dist/$for'
