@@ -6,6 +6,7 @@
   "scripts": {
     "madge": "madge --circular --basedir $(pwd) ./dist/**/*.js || exit 0",
     "build": "tsc",
+    "start": "tsc --watch",
     "test": "echo No tests for now | exit 0",
     "prepublishOnly": "npm run build && npm test",
     "postinstall": "patch-package || exit 0"
