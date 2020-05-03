@@ -125,3 +125,15 @@ export const not = predicate => (...args) =>
 
 export const arrayPush = newItem => baseArr =>
   [...baseArr, newItem]
+
+
+// export const cloneWithPreserveGettersSetters = obj =>
+//   Object.defineProperties({}, Object.getOwnPropertyDescriptors(obj))
+
+// export const template = (str, config) => data =>
+//   str.replace(/\$\{(.*?)\}/g, (...args) =>
+//     get(args[1].split('.'))(data) ?? config?.notFound?.(args[1])
+//   )
+
+// export const matches = obj => item =>
+//   Object.keys(obj).reduce((cum, next) => cum && obj[next] === item[next], true)

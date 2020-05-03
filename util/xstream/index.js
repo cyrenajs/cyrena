@@ -1,3 +1,3 @@
 
-import _circular from '../dist/util/xstream/circular'
+import _circular from '../../dist/util/xstream/circular'
 export const circular = _circular

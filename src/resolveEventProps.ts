@@ -97,6 +97,10 @@ function resolveDomEventProps (vdom) {
   return true
 }
 
+// This adds a filter on the component's state sink which listens
+// on the filtered event coming from inside the component in the
+// form of a ['eventName', payload] tuple. The event prop's value
+// maps the payload to another tuple which also ends up in its sink.
 function resolveComponentEventProps (vdom, powercycle) {
   const eventProps =
     pickBy((...[, prop]) => /^on(?:$|-|[A-Z])/.test(prop))(vdom.props)
@@ -112,10 +116,10 @@ function resolveComponentEventProps (vdom, powercycle) {
   const triplets = Object.keys(eventProps).reduce(
     (cum, next) => cum.concat(getTriplets(
       next === 'on'
-        ? vdom.props['on'] :
-      /^on-/.test(next)
-        ? { [next.replace(/^on-/, '')]: vdom.props[next] } :
-      { state: { [next.replace(/^on/, '').toLowerCase()]: vdom.props[next] }}
+        ? vdom.props['on']
+        : /^on-/.test(next)
+          ? { [next.replace(/^on-/, '')]: vdom.props[next] }
+          : { state: { [next.replace(/^on/, '').toLowerCase()]: vdom.props[next] }}
     )),
     []
   )
