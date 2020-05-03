@@ -63,7 +63,7 @@ React and Cycle.js have separate advantages and compromises, and I wanted to bri
 
 Install Cyrena and its peer dependencies:
 
-`npm install powercycle @cycle/react react xstream`
+`npm install cyrena @cycle/react react xstream`
 
 Install the usual Cycle/react dependencies:
 
@@ -73,10 +73,10 @@ Install the usual Cycle/react dependencies:
 
 #### JSX
 
-Besides following the [Installation](#installation) steps, make sure that your setup can handle JSX, because Powercycle was made with JSX in mind. Powercycle has its own JSX pragma:
+Besides following the [Installation](#installation) steps, make sure that your setup can handle JSX, because Cyrena was made with JSX in mind. Cyrena has its own JSX pragma:
 
 ```jsx
-import withPower from 'powercycle'
+import withPower from 'cyrena'
 /** @jsx withPower.pragma */
 /** @jsxFrag withPower.Fragment */
 ```
@@ -85,11 +85,11 @@ Obviously you can skip using JSX, if you really wish, but you'll still need the 
 
 ### Static VDOM composition
 
-We've seen the default import above named `withPower`, but let's forget that for now. Powercycle's core utility is the `powercycle` function, which takes 3 arguments, and returns a regular Cycle.js _sinks_ object. (Don't pick on the name `powercycle`; at the end of the day, you won't even need to use this function.)
+We've seen the default import above named `withPower`, but let's forget that for now. Cyrena's core utility is the `cyrena` function, which takes 3 arguments, and returns a regular Cycle.js _sinks_ object. (Don't pick on the name `cyrena`; at the end of the day, you won't even need to use this function.)
 
 1. The first argument is a static VDOM, which can contain streams and other components (even inline components! We'll see them later).
 1. The second argument is the sinks object, which contains all of the sinks for the current component, _except the view_.
-1. The third argument is the sources object which Powercycle will pass to the components during the VDOM traversal.
+1. The third argument is the sources object which Cyrena will pass to the components during the VDOM traversal.
 
 Let's see a basic example of an atomic component:
 
@@ -110,7 +110,7 @@ It turns into:
 function Cmp(sources) {
   const state$ = sources.state.stream
 
-  return powercycle(
+  return cyrena(
     <div>{state$}</div>,
     null,
     sources
@@ -137,13 +137,13 @@ function Cmp(sources) {
 }
 ```
 
-With Powercycle, it remains an atomic step:
+With Cyrena, it remains an atomic step:
 
 ```jsx
 function Cmp(sources) {
   const state$ = sources.state.stream
 
-  return powercycle(
+  return cyrena(
     <div>
       State in a panel:
       <Panel title="State">
@@ -156,7 +156,7 @@ function Cmp(sources) {
 }
 ```
 
-You can see the limitation in the first version: you can't put content and pass props to the Panel component in the VDOM. Wrapping a section of a content into a container is not a trivial action – you have to declare and manually invoke every related component separately from the VDOM. In the Powercycle example you might now have an idea how easy it can go with composition. The `powercycle` function will invoke the Panel component with passing the sources object to it (given as the 3rd parameter). Whenever the Panel component's view stream updates, the outer component will update as well. We'll see more powerful examples in the next sections, but let's not rush ahead.
+You can see the limitation in the first version: you can't put content and pass props to the Panel component in the VDOM. Wrapping a section of a content into a container is not a trivial action – you have to declare and manually invoke every related component separately from the VDOM. In the Cyrena example you might now have an idea how easy it can go with composition. The `cyrena` function will invoke the Panel component with passing the sources object to it (given as the 3rd parameter). Whenever the Panel component's view stream updates, the outer component will update as well. We'll see more powerful examples in the next sections, but let's not rush ahead.
 
 How do we define our other sinks then, which are not the view? This is what the second argument is for:
 
@@ -164,7 +164,7 @@ How do we define our other sinks then, which are not the view? This is what the 
 function Cmp(sources) {
   const state$ = sources.state.stream
 
-  return powercycle(
+  return cyrena(
     <div>
       State in a panel:
       <Panel title="State">
@@ -180,11 +180,11 @@ function Cmp(sources) {
 }
 ```
 
-Let's wrap up what the `powercycle` function does exactly:
+Let's wrap up what the `cyrena` function does exactly:
 
 1. It traverses the VDOM and searches for streams and components (see section [Streams and components everywhere](#streams-and-components-everywhere) for details).
 1. It creates a view stream for the outer component which combines all the view streams in the given VDOM, and updates with the original VDOM structure.
-1. It collects all the non-view sink channels which were found in the inner components' sinks objects, and merges them all by channel. It also adds the sinks of the second argument to the merges. The result sinks object will be the return value of the `powercycle` function.
+1. It collects all the non-view sink channels which were found in the inner components' sinks objects, and merges them all by channel. It also adds the sinks of the second argument to the merges. The result sinks object will be the return value of the `cyrena` function.
 
 #### Shorthand return from components
 
@@ -192,7 +192,7 @@ From the last example of the previous section we learned that the VDOM traversal
 
 ```jsx
 function Panel(sources) {
-  return powercycle(
+  return cyrena(
     <div className="some panel styling">
       <h2 className="title">{sources.props.title}</h2>
       {sources.props.children}
@@ -203,7 +203,7 @@ function Panel(sources) {
 }
 ```
 
-One important fact to realize here is that the Panel component is not invoked by the app developer, but by Powercycle. So Powercycle sees its output, and it can automatically call the powercycle function on it, so we have less to type:
+One important fact to realize here is that the Panel component is not invoked by the app developer, but by Cyrena. So Cyrena sees its output, and it can automatically call the cyrena function on it, so we have less to type:
 
 ```jsx
 function Panel(sources) {
@@ -218,7 +218,7 @@ function Panel(sources) {
 }
 ```
 
-This convenience shortcut changes the regular signature of a Cycle.js component's output, but we'll see how it hugely pays off. We can even omit the sources object too, because Powercycle already has it from the first `powercycle` call. If there's no non-view sink channel for the component, we can omit the second parameter too and the array wrapping, so this results in as simple as this:
+This convenience shortcut changes the regular signature of a Cycle.js component's output, but we'll see how it hugely pays off. We can even omit the sources object too, because Cyrena already has it from the first `cyrena` call. If there's no non-view sink channel for the component, we can omit the second parameter too and the array wrapping, so this results in as simple as this:
 
 ```jsx
 function Panel(sources) {
@@ -233,10 +233,10 @@ function Panel(sources) {
 
 #### withPower
 
-Every component which returns with the shortcut return format, conveys the same amount of information as a regular Cycle.js component, it's just 'controlled' by Powercycle. The only thing we have to watch out for, is to have a root `powercycle` call to have the VDOM 'controlled'. It turns out, we can wrap our main component in a higher order function to do this:
+Every component which returns with the shortcut return format, conveys the same amount of information as a regular Cycle.js component, it's just 'controlled' by Cyrena. The only thing we have to watch out for, is to have a root `cyrena` call to have the VDOM 'controlled'. It turns out, we can wrap our main component in a higher order function to do this:
 
 ```jsx
-import withPower from 'powercycle'
+import withPower from 'cyrena'
 /** @jsx withPower.pragma */
 /** @jsxFrag withPower.Fragment */
 
@@ -245,11 +245,11 @@ import withPower from 'powercycle'
 run(withPower(main), drivers)
 ```
 
-With the `withPower` function, you don't ever need to use the powercycle function! You can just return with the VDOM, or with an array containing the VDOM and the event sinks object.
+With the `withPower` function, you don't ever need to use the cyrena function! You can just return with the VDOM, or with an array containing the VDOM and the event sinks object.
 
 ### Streams and components everywhere
 
-Powercycle collects streams and components from the VDOM according to the following rules:
+Cyrena collects streams and components from the VDOM according to the following rules:
 
 1. When it finds a stream as a _VDOM child_, it collects the stream:
 
@@ -293,7 +293,7 @@ Powercycle collects streams and components from the VDOM according to the follow
     }
     ```
 
-4. When it finds a _function as a VDOM child_, it's interpreted as an _inline component_. Powercycle will invoke the component with the sources object and collects its sinks, just like as it were a component element:
+4. When it finds a _function as a VDOM child_, it's interpreted as an _inline component_. Cyrena will invoke the component with the sources object and collects its sinks, just like as it were a component element:
 
     ```jsx
     function main (sources) {
@@ -312,7 +312,7 @@ Powercycle collects streams and components from the VDOM according to the follow
 
 ### Scopes
 
-Any VDOM node can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given element. As components act as boundaries in the Powercycle traversal, a scope will not just affect the component, but the complete sub-VDOM under it as well.
+Any VDOM node can have a `scope` prop, which will act as a regular [Cycle.js isolation scope](https://cycle.js.org/api/state.html#cycle-state-source-usage-how-to-share-data-among-components-or-compute-derived-data) for the given element. As components act as boundaries in the Cyrena traversal, a scope will not just affect the component, but the complete sub-VDOM under it as well.
 
 ```jsx
 function ShowState(sources) {
@@ -377,7 +377,7 @@ defined by their definition order on the node!
 
 #### Automatic view scoping
 
-By default, every component in Powercycle is scoped on the view channel. If you need to lift this rule occasionally, you can provide a `noscope` prop on the component. The reason for this rule is to make string VDOM selectors safe by default. String VDOM selectors are useful, because they eliminate the necessity of boilerplate Symbol declarations. Take a look at this inline component, which is inside a `Collection` item:
+By default, every component in Cyrena is scoped on the view channel. If you need to lift this rule occasionally, you can provide a `noscope` prop on the component. The reason for this rule is to make string VDOM selectors safe by default. String VDOM selectors are useful, because they eliminate the necessity of boilerplate Symbol declarations. Take a look at this inline component, which is inside a `Collection` item:
 
 ```jsx
   {src => [
@@ -426,7 +426,7 @@ defined by their definition order on the node!
 
 ### Collection
 
-Powercycle has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to `Collection`. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags. The Collection package also has a const for item removal reducer:
+Cyrena has a `Collection` component which makes handling dynamic lists easy and trivial. By default, you don't need to provide any props to `Collection`. It uses the state channel as its input, so make sure that you [scope down the state](#scopes) either on the `Collection` component or somewhere above. The `Collection` component will take its VDOM children as a fragment as its item component, so you can put anything between the opening and closing `<Collection>` tags. The Collection package also has a const for item removal reducer:
 
 ```jsx
 <Collection>
@@ -475,7 +475,7 @@ There are cases when you need to interact with the outer state from the items. F
 
 ### Event props
 
-Powercycle makes use of _onClick_-style even props on elements. Event props are basically [shortcuts](#helpers-shortcuts-and-tips)
+Cyrena makes use of _onClick_-style even props on elements. Event props are basically [shortcuts](#helpers-shortcuts-and-tips)
 for inline components. There are 2 types of event props:
 
 * `on<Eventname>={ { sink1: <event$ to sink$ mapper>, sink2: <event$ to sink$ mapper>, ...} }`
@@ -569,10 +569,10 @@ function Combobox (sources) {
 
 ### React realms
 
-React components can be included in the VDOM by wrapping them in the ReactRealm component. To use the state from the Cycle.js environment, Powercycle offers the `useCycleState` hook. You can put any content inside the opening and closing `<ReactRealm>` tags, they won't be traversed by Powercycle. That part of the VDOM will go directly into the React engine:
+React components can be included in the VDOM by wrapping them in the ReactRealm component. To use the state from the Cycle.js environment, Cyrena offers the `useCycleState` hook. You can put any content inside the opening and closing `<ReactRealm>` tags, they won't be traversed by Cyrena. That part of the VDOM will go directly into the React engine:
 
 ```jsx
-import { ReactRealm, useCycleState } from 'powercycle/util/ReactRealm'
+import { ReactRealm, useCycleState } from 'cyrena/util/ReactRealm'
 
 function ReactCounter(props) {
   const [count, setCount] = useCycleState(props.sources)
@@ -717,6 +717,6 @@ function main(sources) {
   ```
 
 
-* #### *How to opt-out from the Powercycle control?*
+* #### *How to opt-out from the Cyrena control?*
 
-  You can opt-out from Powercycle at any place in the VDOM by just returning a regular sinks object. The underlying components will not be controlled by Powercycle.
+  You can opt-out from Cyrena at any place in the VDOM by just returning a regular sinks object. The underlying components will not be controlled by Cyrena.

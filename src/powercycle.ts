@@ -203,6 +203,7 @@ const makePowercycle = config =>
   }
 
 export const powercycle = makePowercycle(CONFIG)
+export const cyrena = powercycle
 export const component = powercycle
 
 // Wrapper for any cycle component for the convenience of shorthand
