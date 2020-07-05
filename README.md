@@ -1,5 +1,4 @@
-Cyrena is a transpositional extension for the wonderful framework Cycle.js. Transposition means that instead of only having views defined in streams, we're allowed to have streams defined in views as well! It powers up Cycle.js to the next level so it almost looks like a new framework! It puts the view in the center, to make composition as easy and trivial as it is in React - while keeping all the benefits of a purely functional-reactive environment. Any regular Cycle.js and React component can be included seamlessly in a Cyrena app.
-
+Cyrena is an experimental UI framework. It allows to have streams in any position of a JSX: as child nodes, attributes, or even just parts of (object) attributes. Cyrena currently works on top of Cycle.js, xstream and React. To put it in a more scientific way, it's a transpositional extension, which turns Cycle.js components inside-out: instead of having views defined in streams, we're defining streams in views. It puts the view in the center, to make composition as easy and trivial as it is in React - while keeping all the benefits of a purely functional-reactive environment. Any regular Cycle.js and React component can be included seamlessly in a Cyrena app.
 
 ```jsx
 function Timer(sources) {
