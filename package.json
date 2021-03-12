@@ -41,7 +41,7 @@
     "xstream": "^11.10.0"
   },
   "devDependencies": {
-    "madge": "3.7.0",
+    "madge": "4.0.1",
     "patch-package": "^6.2.2",
     "prettier": "^2.0.5",
     "typescript": "^3.9.5"
