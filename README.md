@@ -8,7 +8,7 @@ function Timer(sources) {
 }
 ```
 
-Basic examples:
+Examples:
 * [Hello World](https://codesandbox.io/s/94n4j2vxmw)
 * [Timer](https://codesandbox.io/s/1znx4w2xwq)
 * [Counter](https://codesandbox.io/s/5w53z5401p)
@@ -16,11 +16,7 @@ Basic examples:
 * [Todo List - simple](https://codesandbox.io/s/n7m44yjo0j)
 * [Todo List - advanced](https://codesandbox.io/s/2wv3r9ojqp)
 * [React component with Cycle state](https://codesandbox.io/s/74lnv0wy3j)
-
-App examples:
-
 * [Tic Tac Toe](https://codesandbox.io/s/github/sarimarton/tic-tac-toe-cyrena)
-* [TMDb UI](https://codesandbox.io/s/github/sarimarton/tmdb-ui-cyrena)
 * [Testing dashboard](https://codesandbox.io/s/github/sarimarton/cyrena-showcase)
 
 ## Motivation
@@ -47,16 +43,25 @@ React and Cycle.js have separate advantages and compromises, and I wanted to bri
 
 ## Guide
 
-1. [Installation](#installation)
-1. [Getting Started](#getting-started)
-1. [Static VDOM composition](#static-vdom-composition)
-1. [Streams and components everywhere](#streams-and-components-everywhere)
-1. [Scopes](#scopes)
-1. [Conditionals](#conditionals)
-1. [Collection](#collection)
-1. [Event props](#event-props)
-1. [React realms](#react-realms)
-1. [Helpers, Shortcuts and Tips](#helpers-shortcuts-and-tips)
+- [Motivation](#motivation)
+- [Guide](#guide)
+  - [Installation](#installation)
+  - [Getting Started](#getting-started)
+    - [JSX](#jsx)
+  - [Static VDOM composition](#static-vdom-composition)
+    - [Shorthand return from components](#shorthand-return-from-components)
+    - [withPower](#withpower)
+  - [Streams and components everywhere](#streams-and-components-everywhere)
+  - [Scopes](#scopes)
+    - [Automatic view scoping](#automatic-view-scoping)
+  - [Conditionals](#conditionals)
+    - [`If` component:](#if-component)
+    - [`if` prop (applies to Component and DOM elements):](#if-prop-applies-to-component-and-dom-elements)
+  - [Collection](#collection)
+    - [Reaching out to the outer state from the items](#reaching-out-to-the-outer-state-from-the-items)
+  - [Event props](#event-props)
+  - [React realms](#react-realms)
+  - [Helpers, Shortcuts and Tips](#helpers-shortcuts-and-tips)
 
 ### Installation
 
